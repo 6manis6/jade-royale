@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/mongodb';
-import Product from '@/lib/models/Product';
-import mongoose from 'mongoose';
+import { NextResponse } from "next/server";
+import connectToDatabase from "@/lib/mongodb";
+import Product from "@/lib/models/Product";
+import mongoose from "mongoose";
 
 export async function GET(request: Request, context: any) {
   try {
@@ -9,19 +9,96 @@ export async function GET(request: Request, context: any) {
     const { id } = await params; // Next.js 14 requires awaiting params or destructuring from it after awaiting
 
     await connectToDatabase();
-    
+
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ success: false, error: 'Invalid Product ID' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Invalid Product ID" },
+        { status: 400 },
+      );
     }
 
     const product = await Product.findById(id);
-    
+
     if (!product) {
-      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: "Product not found" },
+        { status: 404 },
+      );
     }
 
     return NextResponse.json({ success: true, data: product });
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(request: Request, context: any) {
+  try {
+    const { params } = context;
+    const { id } = await params;
+
+    await connectToDatabase();
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid Product ID" },
+        { status: 400 },
+      );
+    }
+
+    const body = await request.json();
+    const product = await Product.findByIdAndUpdate(id, body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!product) {
+      return NextResponse.json(
+        { success: false, error: "Product not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ success: true, data: product });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 400 },
+    );
+  }
+}
+
+export async function DELETE(request: Request, context: any) {
+  try {
+    const { params } = context;
+    const { id } = await params;
+
+    await connectToDatabase();
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid Product ID" },
+        { status: 400 },
+      );
+    }
+
+    const product = await Product.findByIdAndDelete(id);
+
+    if (!product) {
+      return NextResponse.json(
+        { success: false, error: "Product not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 },
+    );
   }
 }

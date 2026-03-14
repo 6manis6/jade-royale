@@ -1,80 +1,281 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, CreditCard, ShoppingBag, TrendingUp, ArrowUpRight } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import {
+  ShoppingBag,
+  CreditCard,
+  Users,
+  TrendingUp,
+  AlertCircle,
+  Package,
+} from "lucide-react";
+
+interface Product {
+  _id: string;
+  name: string;
+  stock: number;
+}
+
+interface Order {
+  _id: string;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  customer?: {
+    name?: string;
+    phone?: string;
+  };
+}
+
+const formatMoney = (value: number) =>
+  value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+
+const statusStyles: Record<string, string> = {
+  Pending: "bg-amber-100 text-amber-700",
+  Processing: "bg-blue-100 text-blue-700",
+  Paid: "bg-emerald-100 text-emerald-700",
+  Shipped: "bg-sky-100 text-sky-700",
+  Delivered: "bg-green-100 text-green-700",
+  Cancelled: "bg-rose-100 text-rose-700",
+};
 
 export default function AdminDashboard() {
-  const stats = [
-    { name: 'Total Products', value: '24', icon: ShoppingBag, change: '+2', trend: 'up' },
-    { name: 'Active Orders', value: '12', icon: CreditCard, change: '+5', trend: 'up' },
-    { name: 'Total Customers', value: '150', icon: Users, change: '+12%', trend: 'up' },
-    { name: 'Revenue', value: '$2,450', icon: TrendingUp, change: '+18.5%', trend: 'up' },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        const [productsRes, ordersRes] = await Promise.all([
+          fetch("/api/products"),
+          fetch("/api/orders"),
+        ]);
+
+        const productsJson = await productsRes.json();
+        const ordersJson = await ordersRes.json();
+
+        if (productsJson.success) {
+          setProducts(productsJson.data);
+        }
+        if (ordersJson.success) {
+          setOrders(ordersJson.data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      setLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  const stats = useMemo(() => {
+    const totalProducts = products.length;
+    const activeOrders = orders.filter((order) =>
+      ["Pending", "Processing", "Paid"].includes(order.status),
+    ).length;
+    const totalCustomers = new Set(
+      orders.map((order) => order.customer?.phone).filter(Boolean),
+    ).size;
+    const revenue = orders.reduce(
+      (sum, order) => sum + (order.totalAmount || 0),
+      0,
+    );
+
+    return [
+      {
+        name: "Total Products",
+        value: totalProducts,
+        icon: ShoppingBag,
+        helper: "Live inventory count",
+      },
+      {
+        name: "Active Orders",
+        value: activeOrders,
+        icon: CreditCard,
+        helper: "Pending and in progress",
+      },
+      {
+        name: "Customers",
+        value: totalCustomers,
+        icon: Users,
+        helper: "Unique phone numbers",
+      },
+      {
+        name: "Revenue",
+        value: formatMoney(revenue),
+        icon: TrendingUp,
+        helper: "All time gross",
+      },
+    ];
+  }, [orders, products]);
+
+  const recentOrders = useMemo(() => orders.slice(0, 5), [orders]);
+  const lowStock = useMemo(
+    () => products.filter((product) => product.stock <= 5).slice(0, 5),
+    [products],
+  );
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-serif text-black dark:text-white">Dashboard Overview</h2>
-        <p className="text-black dark:text-gray-300 font-medium tracking-tight">Here's what's happening at Jade Royale today.</p>
+    <div className="space-y-10">
+      <div className="flex flex-col gap-3">
+        <p className="uppercase tracking-[0.35em] text-xs text-[var(--jade-muted)] font-semibold">
+          Admin Control Room
+        </p>
+        <div className="flex flex-col gap-2">
+          <h2 className="text-4xl font-serif text-[var(--jade-text)]">
+            Dashboard Overview
+          </h2>
+          <p className="text-[var(--jade-muted)] font-medium max-w-2xl">
+            Track inventory, orders, and revenue without the placeholder
+            numbers.
+          </p>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-[var(--jade-card)] p-6 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div className="p-3 bg-pink-50 dark:bg-pink-900/10 rounded-lg text-[var(--color-jade-pink)]">
-                <stat.icon size={24} />
+          <div
+            key={stat.name}
+            className="bg-[var(--jade-card)] p-6 rounded-2xl border border-[var(--jade-border)] shadow-sm"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.25em] text-[var(--jade-muted)] font-semibold">
+                  {stat.name}
+                </p>
+                <p className="text-3xl font-bold text-[var(--jade-text)] mt-3">
+                  {loading ? "--" : stat.value}
+                </p>
+                <p className="text-xs text-[var(--jade-muted)] mt-3">
+                  {stat.helper}
+                </p>
               </div>
-              <span className={`flex items-center text-xs font-bold ${stat.trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
-                {stat.change}
-                <ArrowUpRight size={12} className="ml-0.5" />
-              </span>
+              <div className="p-3 rounded-2xl bg-pink-50 dark:bg-pink-900/10 text-[var(--color-jade-pink)]">
+                <stat.icon size={22} />
+              </div>
             </div>
-            <h3 className="text-black dark:text-gray-300 text-sm font-bold uppercase tracking-wider">{stat.name}</h3>
-            <p className="text-3xl font-bold text-black dark:text-white mt-1">{stat.value}</p>
           </div>
         ))}
       </div>
 
-      {/* Activity / Charts Placeholder */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-[var(--jade-card)] p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <h3 className="text-lg font-bold text-black dark:text-white mb-6 uppercase tracking-wider">Recent Orders</h3>
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="flex items-center justify-between p-4 border border-gray-50 dark:border-gray-800 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold text-black dark:text-white">#</div>
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,_2fr)_minmax(0,_1fr)] gap-6">
+        <div className="bg-[var(--jade-card)] p-8 rounded-2xl border border-[var(--jade-border)] shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-[var(--jade-muted)] font-semibold">
+                Orders
+              </p>
+              <h3 className="text-xl font-semibold text-[var(--jade-text)] mt-2">
+                Recent Orders
+              </h3>
+            </div>
+            <span className="text-xs text-[var(--jade-muted)]">
+              {loading ? "Loading" : `${orders.length} total`}
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-16 rounded-xl bg-[var(--jade-bg)] animate-pulse"
+                />
+              ))}
+            </div>
+          ) : recentOrders.length > 0 ? (
+            <div className="space-y-3">
+              {recentOrders.map((order) => (
+                <div
+                  key={order._id}
+                  className="flex items-center justify-between gap-4 p-4 rounded-xl border border-[var(--jade-border)] bg-[var(--jade-bg)]/70"
+                >
                   <div>
-                    <p className="font-bold text-black dark:text-white">Order #JD-{1000 + i}</p>
-                    <p className="text-xs text-black/60 dark:text-white/60 font-medium">2 minutes ago</p>
+                    <p className="font-semibold text-[var(--jade-text)]">
+                      Order #{order._id.slice(-6).toUpperCase()}
+                    </p>
+                    <p className="text-xs text-[var(--jade-muted)] mt-1">
+                      {order.customer?.name || "Unnamed"} ·{" "}
+                      {new Date(order.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="text-sm font-semibold text-[var(--jade-text)]">
+                      {formatMoney(order.totalAmount || 0)}
+                    </span>
+                    <span
+                      className={`text-[10px] uppercase font-semibold px-2 py-1 rounded-full ${statusStyles[order.status] || "bg-[var(--jade-bg)] text-[var(--jade-muted)]"}`}
+                    >
+                      {order.status}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-black dark:text-white">$120.00</p>
-                  <span className="text-[10px] uppercase font-bold text-orange-500">Pending</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-center gap-3 text-sm text-[var(--jade-muted)]">
+              <AlertCircle size={18} />
+              No orders yet. Orders will appear here as soon as customers check
+              out.
+            </div>
+          )}
         </div>
-        
-        <div className="bg-[var(--jade-card)] p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-          <h3 className="text-lg font-bold text-black dark:text-white mb-6 uppercase tracking-wider">Low Stock Alert</h3>
-          <div className="space-y-4">
-            {[1, 2].map(i => (
-              <div key={i} className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded overflow-hidden flex-shrink-0"></div>
-                <div className="flex-grow">
-                  <p className="text-sm font-bold text-black dark:text-white">Hydrating Serum</p>
-                  <p className="text-xs text-red-500 font-bold">Only 2 left</p>
-                </div>
-                <button className="text-xs text-[var(--color-jade-pink)] font-bold hover:underline">Restock</button>
-              </div>
-            ))}
+
+        <div className="bg-[var(--jade-card)] p-8 rounded-2xl border border-[var(--jade-border)] shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.25em] text-[var(--jade-muted)] font-semibold">
+                Inventory
+              </p>
+              <h3 className="text-xl font-semibold text-[var(--jade-text)] mt-2">
+                Low Stock Alerts
+              </h3>
+            </div>
           </div>
+
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-12 rounded-xl bg-[var(--jade-bg)] animate-pulse"
+                />
+              ))}
+            </div>
+          ) : lowStock.length > 0 ? (
+            <div className="space-y-4">
+              {lowStock.map((product) => (
+                <div
+                  key={product._id}
+                  className="flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-pink-50 dark:bg-pink-900/10 text-[var(--color-jade-pink)]">
+                      <Package size={16} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--jade-text)]">
+                        {product.name}
+                      </p>
+                      <p className="text-xs text-[var(--jade-muted)]">
+                        Only {product.stock} left
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-semibold text-rose-500">
+                    Restock
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-sm text-[var(--jade-muted)]">
+              Inventory looks healthy. No low stock items right now.
+            </div>
+          )}
         </div>
       </div>
     </div>

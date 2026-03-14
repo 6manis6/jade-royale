@@ -1,11 +1,11 @@
 "use client";
 
-import Link from 'next/link';
-import { ShoppingBag, Menu, X, User, Heart, Search } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
-import { useState, useEffect } from 'react';
-import { ThemeToggle } from './ThemeToggle';
-import Image from 'next/image';
+import Link from "next/link";
+import { ShoppingBag, Menu, X, User, Heart, Search } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { useState, useEffect } from "react";
+import { ThemeToggle } from "./ThemeToggle";
+import Image from "next/image";
 
 export default function Navbar() {
   const { cartCount, setIsCartOpen } = useCart();
@@ -16,12 +16,14 @@ export default function Navbar() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header className={`fixed top-0 w-full z-40 transition-all duration-300 ${isScrolled ? 'bg-[var(--jade-card)]/95 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-5'}`}>
+    <header
+      className={`fixed top-0 w-full z-40 transition-all duration-300 ${isScrolled ? "bg-[var(--jade-card)]/95 backdrop-blur-md shadow-sm py-4" : "bg-transparent py-5"}`}
+    >
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -42,11 +44,36 @@ export default function Navbar() {
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-black hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors">Home</Link>
-            <Link href="/shop" className="text-black hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors">Product</Link>
-            <Link href="/shop?category=Skincare" className="text-black hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors">Skincare</Link>
-            <Link href="/shop?category=Makeup" className="text-black hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors">Makeup</Link>
-            <Link href="/shop?category=Clothing" className="text-black hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors">Clothing</Link>
+            <Link
+              href="/"
+              className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              href="/shop"
+              className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors"
+            >
+              Product
+            </Link>
+            <Link
+              href="/shop?category=Skincare"
+              className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors"
+            >
+              Skincare
+            </Link>
+            <Link
+              href="/shop?category=Makeup"
+              className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors"
+            >
+              Makeup
+            </Link>
+            <Link
+              href="/shop?category=Clothing"
+              className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors"
+            >
+              Clothing
+            </Link>
           </nav>
 
           {/* Icons */}
@@ -60,18 +87,18 @@ export default function Navbar() {
                 placeholder="Search..."
                 className="w-0 group-focus-within:w-40 md:group-hover:w-48 transition-all duration-500 bg-[var(--jade-bg)] border-b border-[var(--color-jade-pink)] outline-none px-2 py-1 text-sm text-[var(--jade-text)] opacity-0 group-focus-within:opacity-100 md:group-hover:opacity-100"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     window.location.href = `/shop?q=${(e.target as HTMLInputElement).value}`;
                   }
                 }}
               />
-              <button className="text-black hover:text-[var(--color-jade-pink)] transition-colors p-1">
+              <button className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] transition-colors p-1">
                 <Search size={22} strokeWidth={2.5} />
               </button>
             </div>
 
             <button
-              className="relative text-black hover:text-[var(--color-jade-pink)] transition-colors"
+              className="relative text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] transition-colors"
               onClick={() => setIsCartOpen(true)}
             >
               <ShoppingBag size={24} strokeWidth={2.5} />
@@ -81,8 +108,8 @@ export default function Navbar() {
                 </span>
               )}
             </button>
-            <button 
-              className="md:hidden text-black ml-2"
+            <button
+              className="md:hidden text-[var(--jade-text)] ml-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -94,11 +121,41 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-[var(--jade-card)] border-t border-gray-100 dark:border-gray-800 shadow-lg py-4 px-6 flex flex-col space-y-4">
-          <Link href="/" onClick={() => setMobileMenuOpen(false)} className="text-black hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm">Home</Link>
-          <Link href="/shop" onClick={() => setMobileMenuOpen(false)} className="text-black hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm">Shop All</Link>
-          <Link href="/shop?category=Skincare" onClick={() => setMobileMenuOpen(false)} className="text-black hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm">Skincare</Link>
-          <Link href="/shop?category=Makeup" onClick={() => setMobileMenuOpen(false)} className="text-black hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm">Makeup</Link>
-          <Link href="/shop?category=Clothing" onClick={() => setMobileMenuOpen(false)} className="text-black hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm">Clothing</Link>
+          <Link
+            href="/"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+          >
+            Home
+          </Link>
+          <Link
+            href="/shop"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+          >
+            Shop All
+          </Link>
+          <Link
+            href="/shop?category=Skincare"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+          >
+            Skincare
+          </Link>
+          <Link
+            href="/shop?category=Makeup"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+          >
+            Makeup
+          </Link>
+          <Link
+            href="/shop?category=Clothing"
+            onClick={() => setMobileMenuOpen(false)}
+            className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+          >
+            Clothing
+          </Link>
         </div>
       )}
     </header>

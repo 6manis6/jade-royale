@@ -1,12 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-jade-pink: #E91E8C;
-  --color-jade-pink-hover: #D81780;
-  --color-jade-blush: #FFD6E7;
+  --color-jade-pink: #e91e8c;
+  --color-jade-pink-hover: #d81780;
+  --color-jade-blush: #ffd6e7;
   --color-jade-bg: var(--jade-bg);
   --color-jade-text: var(--jade-text);
-  --color-jade-accent: #8B4513;
+  --color-jade-accent: #8b4513;
 
   --font-serif: "Cormorant Garamond", serif;
   --font-sans: "Inter", sans-serif;
@@ -14,22 +14,37 @@
 
 @layer base {
   :root {
-    --jade-bg: #FFFAF9;
-    --jade-text: #000000;
-    --jade-card: #FFFFFF;
+    --jade-bg: #fffaf9;
+    --jade-text: #1a0e14;
+    --jade-card: #ffffff;
+    --jade-muted: #6b5b64;
+    --jade-muted-strong: #4a3a43;
+    --jade-border: #f0dde6;
+    --jade-border-strong: #e5cbd7;
+    --jade-input: #fff3f7;
   }
 
   .dark {
-    --jade-bg: #121212;
-    --jade-text: #FDE7F3;
-    --jade-card: #1E1E1E;
+    --jade-bg: #141215;
+    --jade-text: #f6edf2;
+    --jade-card: #1d1a1e;
+    --jade-muted: #c9b6c1;
+    --jade-muted-strong: #e0d1da;
+    --jade-border: #2a242b;
+    --jade-border-strong: #3a313a;
+    --jade-input: #1a171c;
   }
 
   body {
     @apply bg-[var(--jade-bg)] text-[var(--jade-text)] font-sans transition-colors duration-300;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-serif;
   }
 }
@@ -38,11 +53,11 @@
   .btn-primary {
     @apply bg-[var(--color-jade-pink)] text-white px-8 py-3 rounded hover:bg-[var(--color-jade-pink-hover)] transition-colors duration-300 font-medium uppercase tracking-wider text-sm;
   }
-  
+
   .btn-secondary {
     @apply bg-[var(--jade-card)] border border-[var(--color-jade-pink)] text-[var(--color-jade-pink)] px-8 py-3 rounded hover:bg-[var(--jade-bg)] transition-colors duration-300 font-medium uppercase tracking-wider text-sm;
   }
-  
+
   .glass-card {
     @apply bg-[var(--jade-card)]/80 backdrop-blur-md border border-[var(--jade-text)]/10 shadow-sm;
   }
