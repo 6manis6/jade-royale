@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+  --color-jade-pink: #E91E8C;
+  --color-jade-pink-hover: #D81780;
+  --color-jade-blush: #FFD6E7;
+  --color-jade-bg: var(--jade-bg);
+  --color-jade-text: var(--jade-text);
+  --color-jade-accent: #8B4513;
+
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  :root {
+    --jade-bg: #FFFAF9;
+    --jade-text: #000000;
+    --jade-card: #FFFFFF;
+  }
+
+  .dark {
+    --jade-bg: #121212;
+    --jade-text: #FDE7F3;
+    --jade-card: #1E1E1E;
+  }
+
+  body {
+    @apply bg-[var(--jade-bg)] text-[var(--jade-text)] font-sans transition-colors duration-300;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer utilities {
+  .btn-primary {
+    @apply bg-[var(--color-jade-pink)] text-white px-8 py-3 rounded hover:bg-[var(--color-jade-pink-hover)] transition-colors duration-300 font-medium uppercase tracking-wider text-sm;
+  }
+  
+  .btn-secondary {
+    @apply bg-[var(--jade-card)] border border-[var(--color-jade-pink)] text-[var(--color-jade-pink)] px-8 py-3 rounded hover:bg-[var(--jade-bg)] transition-colors duration-300 font-medium uppercase tracking-wider text-sm;
+  }
+  
+  .glass-card {
+    @apply bg-[var(--jade-card)]/80 backdrop-blur-md border border-[var(--jade-text)]/10 shadow-sm;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-jade-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-jade-blush);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-jade-pink);
+}
