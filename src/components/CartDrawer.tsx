@@ -40,7 +40,7 @@ export default function CartDrawer() {
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-[var(--jade-muted)] opacity-60 space-y-4">
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
               <ShoppingBag size={48} strokeWidth={1} />
               <p>Your cart is empty</p>
               <button

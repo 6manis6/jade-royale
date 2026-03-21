@@ -15,7 +15,7 @@ export default function CartPage() {
 
       {cart.length === 0 ? (
         <div className="text-center py-20 bg-[var(--jade-card)] rounded-2xl max-w-2xl mx-auto border border-transparent dark:border-gray-800">
-          <p className="font-serif text-2xl text-[var(--jade-muted)] dark:text-[var(--jade-muted)] mb-6">
+          <p className="font-serif text-2xl text-gray-500 dark:text-gray-400 mb-6">
             Your cart is currently empty.
           </p>
           <Link href="/shop" className="btn-primary inline-block">
@@ -28,7 +28,7 @@ export default function CartPage() {
           <div className="flex-1 w-full overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 text-sm tracking-wider uppercase text-[var(--jade-muted)] dark:text-[var(--jade-muted)]">
+                <tr className="border-b border-gray-200 dark:border-gray-800 text-sm tracking-wider uppercase text-gray-500 dark:text-gray-400">
                   <th className="pb-4 font-medium">Product</th>
                   <th className="pb-4 font-medium">Price</th>
                   <th className="pb-4 font-medium">Quantity</th>
@@ -45,7 +45,7 @@ export default function CartPage() {
                       <div className="flex items-center gap-4">
                         <button
                           onClick={() => removeFromCart(item.productId)}
-                          className=\"text-[var(--jade-text)] hover:text-red-500 transition-colors p-2\"
+                          className="text-gray-300 hover:text-red-500 transition-colors p-2"
                         >
                           <X size={18} />
                         </button>
@@ -73,7 +73,7 @@ export default function CartPage() {
                           onClick={() =>
                             updateQty(item.productId, item.qty - 1)
                           }
-                          className="p-2 hover:bg-[var(--jade-bg)] text-[var(--jade-muted)] transition-colors"
+                          className="p-2 hover:bg-[var(--jade-bg)] text-gray-500 transition-colors"
                           disabled={item.qty <= 1}
                         >
                           <Minus size={14} />
@@ -85,7 +85,7 @@ export default function CartPage() {
                           onClick={() =>
                             updateQty(item.productId, item.qty + 1)
                           }
-                          className="p-2 hover:bg-[var(--jade-bg)] text-[var(--jade-muted)] transition-colors"
+                          className="p-2 hover:bg-[var(--jade-bg)] text-gray-500 transition-colors"
                         >
                           <Plus size={14} />
                         </button>
@@ -116,11 +116,11 @@ export default function CartPage() {
                 Order Summary
               </h2>
 
-              <div className="flex justify-between items-center mb-4 text-[var(--jade-muted)] dark:text-[var(--jade-muted)]">
+              <div className="flex justify-between items-center mb-4 text-gray-600 dark:text-gray-400">
                 <span>Subtotal</span>
                 <span className="font-medium">${cartTotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center mb-6 text-[var(--jade-muted)] dark:text-[var(--jade-muted)]">
+              <div className="flex justify-between items-center mb-6 text-gray-600 dark:text-gray-400">
                 <span>Shipping</span>
                 <span>Calculated next step</span>
               </div>
