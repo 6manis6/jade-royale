@@ -68,7 +68,7 @@ export default function ProductDetail() {
 
         {/* Details */}
         <div className="flex flex-col justify-center">
-          <nav className="text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium">
+          <nav className="text-sm text-[var(--jade-muted)] dark:text-[var(--jade-muted)] mb-6 font-medium">
             Home / {product.category} / <span className="text-gray-900 dark:text-white">{product.name}</span>
           </nav>
           
@@ -77,22 +77,22 @@ export default function ProductDetail() {
           <div className="flex items-center gap-4 mb-6">
             <div className="flex text-[var(--color-jade-pink)]">
               {[...Array(5)].map((_, i) => (
-                <svg key={i} className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'fill-current' : 'text-gray-300'}`} viewBox="0 0 20 20">
+                <svg key={i} className={`w-5 h-5 ${i < Math.floor(product.rating) ? 'fill-current' : 'text-gray-300 dark:text-gray-700'}`} viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               ))}
             </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviewCount} Reviews)</span>
+            <span className="text-sm text-[var(--jade-muted)] dark:text-[var(--jade-muted)]">({product.reviewCount} Reviews)</span>
           </div>
 
           <div className="flex items-end gap-4 mb-8">
             <span className="text-4xl font-semibold text-[var(--color-jade-pink)]">${product.price.toFixed(2)}</span>
             {product.originalPrice && (
-              <span className="text-2xl text-gray-400 line-through mb-1">${product.originalPrice.toFixed(2)}</span>
+              <span className="text-2xl text-[var(--jade-muted)] line-through mb-1">${product.originalPrice.toFixed(2)}</span>
             )}
           </div>
 
-          <p className="text-gray-600 dark:text-gray-300 leading-relaxed max-w-lg mb-10">
+          <p className="text-[var(--jade-text)] dark:text-[var(--jade-text)] leading-relaxed max-w-lg mb-10">
             {product.description}
           </p>
 
@@ -101,20 +101,20 @@ export default function ProductDetail() {
               <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-sm h-14">
                 <button 
                   onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className="px-5 text-gray-500 hover:text-[var(--color-jade-pink)] transition-colors h-full"
+                  className="px-5 text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] transition-colors h-full"
                 >
                   <Minus size={18} />
                 </button>
                 <span className="w-8 text-center font-medium text-lg text-[var(--jade-text)]">{qty}</span>
                 <button 
                   onClick={() => setQty(q => q + 1)}
-                  className="px-5 text-gray-500 hover:text-[var(--color-jade-pink)] transition-colors h-full"
+                  className="px-5 text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] transition-colors h-full"
                 >
                   <Plus size={18} />
                 </button>
               </div>
               <button 
-                className="w-14 h-14 flex items-center justify-center border border-gray-200 dark:border-gray-800 rounded-sm text-gray-500 hover:text-red-500 hover:border-red-500 transition-all font-medium"
+                className="w-14 h-14 flex items-center justify-center border border-gray-200 dark:border-gray-800 rounded-sm text-[var(--jade-text)] hover:text-red-500 hover:border-red-500 transition-all font-medium"
               >
                 <Heart size={22} className="hover:fill-current" />
               </button>
@@ -142,14 +142,14 @@ export default function ProductDetail() {
               <Truck className="text-[var(--color-jade-pink)]" size={24} />
               <div>
                 <h4 className="font-semibold text-sm text-[var(--jade-text)] mb-1 tracking-wide uppercase">Free Shipping</h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Over $100 orders</p>
+                <p className="text-xs text-[var(--jade-muted)] dark:text-[var(--jade-muted)]">Over \$100 orders</p>
               </div>
             </div>
             <div className="flex gap-4">
               <ShieldCheck className="text-[var(--color-jade-pink)]" size={24} />
               <div>
                 <h4 className="font-semibold text-sm text-[var(--jade-text)] mb-1 tracking-wide uppercase">Original Items</h4>
-                <p className="text-xs text-gray-500 dark:text-gray-400">100% Authentic quality</p>
+                <p className="text-xs text-[var(--jade-muted)] dark:text-[var(--jade-muted)]">100% Authentic quality</p>
               </div>
             </div>
           </div>

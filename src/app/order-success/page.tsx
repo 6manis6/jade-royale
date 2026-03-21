@@ -22,14 +22,14 @@ function OrderSuccessContent() {
           </div>
           
           <h1 className="font-serif text-4xl md:text-5xl text-[var(--jade-text)] mb-4">Thank You!</h1>
-          <h2 className="text-xl text-gray-600 dark:text-gray-400 font-medium mb-8">Your order has been placed successfully.</h2>
+          <h2 className="text-xl text-[var(--jade-muted)] dark:text-[var(--jade-muted)] font-medium mb-8">Your order has been placed successfully.</h2>
           
           <div className="bg-[var(--jade-bg)] border border-gray-100 dark:border-gray-800 rounded-xl p-6 mb-10 w-full max-w-md">
-            <p className="text-sm text-gray-500 uppercase tracking-widest mb-2 font-semibold">Order Reference Number</p>
+            <p className="text-sm text-[var(--jade-muted)] uppercase tracking-widest mb-2 font-semibold">Order Reference Number</p>
             <p className="font-mono text-xl text-[var(--color-jade-pink)] font-bold">{orderId || "JDE-PENDING"}</p>
           </div>
 
-          <p className="text-gray-500 mb-10 leading-relaxed max-w-md">
+          <p className="text-[var(--jade-muted)] mb-10 leading-relaxed max-w-md">
             We've sent a confirmation email to your provided address. Our team is processing your beautiful products right now to dispatch them to Birtamod quickly!
           </p>
 
