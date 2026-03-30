@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import User from "@/lib/models/User";
 
 export async function GET(request: Request) {
   try {
@@ -37,6 +40,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await connectToDatabase();
+    
+    const session = await getServerSession(authOptions);
+    let userId = null;
+    if (session?.user?.email) {
+      const userDoc = await User.findOne({ email: session.user.email });
+      if (userDoc) {
+        userId = userDoc._id;
+      }
+    }
+
     const body = await request.json();
 
     // Basic validation
@@ -59,7 +72,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const order = await Order.create(body);
+    const orderData = { ...body };
+    if (userId) {
+      orderData.userId = userId;
+    }
+
+    const order = await Order.create(orderData);
 
     // Optional: Here we could clear cart or reduce product stock
 

@@ -9,7 +9,7 @@ import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 
 export default function Navbar() {
-  const { cartCount, setIsCartOpen } = useCart();
+  const { cartCount, setIsCartOpen, clearCart } = useCart();
   const { data: session, status } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -113,11 +113,15 @@ export default function Navbar() {
 
             {status === "authenticated" ? (
               <div className="hidden md:flex items-center gap-3">
-                <span className="text-xs text-[var(--jade-muted)] max-w-[140px] truncate">
+                <Link href="/profile" className="text-xs font-medium text-[var(--jade-text)] max-w-[140px] truncate hover:text-[var(--color-jade-pink)] transition-colors flex items-center gap-1">
+                  <User size={16} />
                   {session?.user?.name || session?.user?.email}
-                </span>
+                </Link>
                 <button
-                  onClick={() => signOut({ callbackUrl: "/" })}
+                  onClick={() => {
+                    clearCart();
+                    signOut({ callbackUrl: "/" });
+                  }}
                   className="inline-flex items-center gap-1 text-[var(--jade-text)] hover:text-[var(--color-jade-pink)]"
                 >
                   <LogOut size={18} />
@@ -190,15 +194,25 @@ export default function Navbar() {
             Clothing
           </Link>
           {status === "authenticated" ? (
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                signOut({ callbackUrl: "/" });
-              }}
-              className="text-left text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm inline-flex items-center gap-2"
-            >
-              <LogOut size={16} /> Logout
-            </button>
+            <>
+              <Link
+                href="/profile"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm inline-flex items-center gap-2"
+              >
+                <User size={16} /> My Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  clearCart();
+                  signOut({ callbackUrl: "/" });
+                }}
+                className="text-left text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm inline-flex items-center gap-2"
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </>
           ) : (
             <>
               <Link

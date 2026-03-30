@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema(
       default: "credentials",
     },
     emailVerified: { type: Boolean, default: false },
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
   },
   { timestamps: true },
 );

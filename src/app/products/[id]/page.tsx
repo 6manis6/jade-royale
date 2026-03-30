@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useCart } from "@/context/CartContext";
 import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   Minus,
   Plus,
@@ -27,6 +28,10 @@ export default function ProductDetail() {
   const [selectedVariantIdx, setSelectedVariantIdx] = useState<number | null>(
     null,
   );
+  const { data: session } = useSession();
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+  
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [isMagnifierVisible, setIsMagnifierVisible] = useState(false);
   const [magnifierPos, setMagnifierPos] = useState({ x: 0, y: 0 });
@@ -51,7 +56,20 @@ export default function ProductDetail() {
         console.error("Failed to fetch product", err);
         setLoading(false);
       });
-  }, [id]);
+      
+    if (session) {
+      fetch("/api/user/profile")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data.wishlist) {
+            const inWishlist = data.data.wishlist.some((item: any) => 
+               typeof item === 'string' ? item === id : item._id === id
+            );
+            setIsWishlisted(inWishlist);
+          }
+        });
+    }
+  }, [id, session]);
 
   if (loading)
     return (
@@ -78,6 +96,10 @@ export default function ProductDetail() {
       ? currentVariant.images
       : product.images;
   const displayPrice = currentVariant ? currentVariant.price : product.price;
+  const discountPercent =
+    product.originalPrice > displayPrice
+      ? Math.round(((product.originalPrice - displayPrice) / product.originalPrice) * 100)
+      : 0;
 
   const handleAddToCart = () => {
     const selectedVariantLabel =
@@ -109,6 +131,31 @@ export default function ProductDetail() {
   const handleBuyNow = () => {
     handleAddToCart();
     router.push("/checkout");
+  };
+
+  const toggleWishlist = async () => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await fetch(`/api/user/wishlist?productId=${product._id}`, { method: 'DELETE' });
+        setIsWishlisted(false);
+      } else {
+        await fetch('/api/user/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId: product._id }),
+        });
+        setIsWishlisted(true);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setWishlistLoading(false);
   };
 
   const nextImage = () => {
@@ -264,15 +311,20 @@ export default function ProductDetail() {
             {product.name}
           </h1>
 
-          <div className="flex items-end gap-4 mb-8">
+          <div className="flex items-end gap-3 mb-8">
             <span className="text-4xl font-semibold text-[var(--color-jade-pink)]">
               {formatPrice(displayPrice)}
             </span>
             {product.originalPrice > 0 &&
               product.originalPrice > displayPrice && (
-                <span className="text-2xl text-[var(--jade-muted-strong)] line-through mb-1 opacity-70">
-                  {formatPrice(product.originalPrice)}
-                </span>
+                <>
+                  <span className="text-2xl text-[var(--jade-muted-strong)] line-through mb-1 opacity-70">
+                    {formatPrice(product.originalPrice)}
+                  </span>
+                  <span className="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded ml-2 mb-1">
+                    {discountPercent}% OFF
+                  </span>
+                </>
               )}
           </div>
 
@@ -288,7 +340,7 @@ export default function ProductDetail() {
                 </span>
               </h4>
               {variantMode === "shade" ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div className="flex flex-wrap gap-5">
                   {variants.map((variant: any, idx: number) => {
                     const shadeLabel = variant.shadeName || variant.colorName;
                     const shadeImage =
@@ -301,24 +353,22 @@ export default function ProductDetail() {
                           setSelectedVariantIdx(idx);
                           setCurrentImageIdx(0);
                         }}
-                        className={`border rounded-xl p-2 transition-all text-left ${selectedVariantIdx === idx ? "border-[var(--color-jade-pink)] bg-[var(--jade-card)] shadow-sm" : "border-[var(--jade-border)] hover:border-[var(--color-jade-pink)]"}`}
+                        className="flex flex-col items-center gap-2 group w-[72px]"
                         title={shadeLabel}
                         type="button"
                       >
-                        <div className="w-full h-16 bg-[var(--jade-bg)] rounded-md overflow-hidden mb-2 flex items-center justify-center">
+                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-[var(--jade-bg)] ${selectedVariantIdx === idx ? "border-[var(--color-jade-pink)] shadow-md scale-110" : "border-[var(--jade-border)] group-hover:border-[var(--color-jade-pink)]"}`}>
                           {shadeImage ? (
                             <img
                               src={shadeImage}
                               alt={shadeLabel}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="text-xs text-[var(--jade-muted)]">
-                              No image
-                            </span>
+                            <span className="text-[10px] text-[var(--jade-muted)]">No img</span>
                           )}
                         </div>
-                        <p className="text-xs font-medium text-[var(--jade-text)] leading-snug line-clamp-2">
+                        <p className={`text-xs font-medium text-center line-clamp-2 mt-1 ${selectedVariantIdx === idx ? "text-[var(--color-jade-pink)]" : "text-[var(--jade-text)] group-hover:text-[var(--color-jade-pink)]"}`}>
                           {shadeLabel}
                         </p>
                       </button>
@@ -348,9 +398,7 @@ export default function ProductDetail() {
             </div>
           )}
 
-          <p className="text-[var(--jade-muted)] leading-relaxed max-w-lg mb-10 text-sm md:text-base">
-            {product.description}
-          </p>
+
 
           <div className="space-y-6 max-w-md">
             <div className="flex items-center gap-4">
@@ -371,8 +419,12 @@ export default function ProductDetail() {
                   <Plus size={18} />
                 </button>
               </div>
-              <button className="w-14 h-14 flex items-center justify-center border border-gray-200 dark:border-gray-800 rounded-xl text-[var(--jade-text)] hover:text-red-500 hover:border-red-500 transition-all font-medium bg-[var(--jade-card)] group">
-                <Heart size={22} className="group-hover:fill-current" />
+              <button 
+                onClick={toggleWishlist}
+                disabled={wishlistLoading}
+                className={`w-14 h-14 flex items-center justify-center border rounded-xl transition-all font-medium bg-[var(--jade-card)] group ${isWishlisted ? 'border-red-500 text-red-500' : 'border-gray-200 dark:border-gray-800 text-[var(--jade-text)] hover:text-red-500 hover:border-red-500'}`}
+              >
+                <Heart size={22} className={isWishlisted ? "fill-current" : "group-hover:fill-current"} />
               </button>
             </div>
 
@@ -392,33 +444,13 @@ export default function ProductDetail() {
             </button>
           </div>
 
-          {/* Guarantees */}
-          <div className="mt-12 border-t border-[var(--jade-border)] pt-8 grid grid-cols-2 gap-6">
-            <div className="flex gap-4">
-              <Truck className="text-[var(--color-jade-pink)]" size={24} />
-              <div>
-                <h4 className="font-semibold text-sm text-[var(--jade-text)] mb-1 tracking-wide uppercase">
-                  Free Shipping
-                </h4>
-                <p className="text-xs text-[var(--jade-muted)]">
-                  Over Rs 10,000 orders
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4">
-              <ShieldCheck
-                className="text-[var(--color-jade-pink)]"
-                size={24}
-              />
-              <div>
-                <h4 className="font-semibold text-sm text-[var(--jade-text)] mb-1 tracking-wide uppercase">
-                  Original Items
-                </h4>
-                <p className="text-xs text-[var(--jade-muted)]">
-                  100% Authentic quality
-                </p>
-              </div>
-            </div>
+          <div className="mt-10 pt-8 border-t border-[var(--jade-border)]">
+            <h3 className="text-lg font-serif font-semibold text-[var(--jade-text)] mb-4">
+              Product Description
+            </h3>
+            <p className="text-[var(--jade-muted)] leading-relaxed max-w-2xl text-sm md:text-base whitespace-pre-wrap">
+              {product.description}
+            </p>
           </div>
         </div>
       </div>

@@ -42,6 +42,11 @@ export default function ProductCard({ product }: { product: Product }) {
     router.push("/checkout");
   };
 
+  const discountPercent =
+    product.originalPrice && product.originalPrice > product.price
+      ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+      : 0;
+
   return (
     <Link
       href={`/products/${product._id}`}
@@ -54,6 +59,12 @@ export default function ProductCard({ product }: { product: Product }) {
             className={`absolute top-4 left-4 text-xs font-bold text-white px-2 py-1 rounded-sm z-10 ${product.badge === "SALE" ? "bg-red-500" : product.badge === "NEW" ? "bg-gray-900" : "bg-[var(--color-jade-pink)]"}`}
           >
             {product.badge}
+          </span>
+        )}
+        
+        {discountPercent > 0 && (
+          <span className="absolute top-4 right-4 text-xs font-bold bg-red-500 text-white px-2 py-1 rounded-sm z-10">
+            {discountPercent}% OFF
           </span>
         )}
 

@@ -11,6 +11,7 @@ const OrderItemSchema = new mongoose.Schema({
 const OrderSchema = new mongoose.Schema(
   {
     items: [OrderItemSchema],
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     customer: {
       name: { type: String, required: true },
       phone: { type: String, required: true },
