@@ -10,7 +10,7 @@ const categories = [
   {
     name: 'Makeup',
     count: '9+ items',
-    image: 'https://images.unsplash.com/photo-1512496115841-db0aaf528c1c?q=80&w=400&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop',
     color: 'from-orange-50 dark:from-orange-900/10 to-transparent'
   },
   {

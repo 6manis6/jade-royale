@@ -85,7 +85,7 @@ function ShopContent() {
             className={`px-6 py-2 rounded-full border transition-all duration-300 font-medium tracking-wide text-sm ${
               activeCategory === cat
                 ? "bg-[var(--color-jade-pink)] border-[var(--color-jade-pink)] text-white shadow-md"
-                : "bg-[var(--jade-card)] border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-[var(--color-jade-pink)] hover:text-[var(--color-jade-pink)]"
+                : "bg-[var(--jade-card)] border-gray-200 dark:border-gray-700 text-black dark:text-gray-400 hover:border-[var(--color-jade-pink)] hover:text-[var(--color-jade-pink)]"
             }`}
           >
             {cat}

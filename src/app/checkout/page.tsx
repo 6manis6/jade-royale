@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Truck, Wallet, Info } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart();
@@ -25,7 +26,7 @@ export default function CheckoutPage() {
         <h1 className="font-serif text-3xl mb-4 text-[var(--jade-text)]">
           Your cart is empty
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mb-8">
+        <p className="text-black dark:text-gray-400 mb-8">
           Please add products to your cart before proceeding to checkout.
         </p>
         <button onClick={() => router.push("/shop")} className="btn-primary">
@@ -97,7 +98,7 @@ export default function CheckoutPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-black dark:text-gray-300">
                     Full Name *
                   </label>
                   <input
@@ -110,7 +111,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-black dark:text-gray-300">
                     Phone Number *
                   </label>
                   <input
@@ -123,7 +124,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-black dark:text-gray-300">
                     City / District *
                   </label>
                   <input
@@ -136,7 +137,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <label className="text-sm font-medium text-black dark:text-gray-300">
                     Detailed Address (House No, Street) *
                   </label>
                   <input
@@ -174,7 +175,7 @@ export default function CheckoutPage() {
                       className={
                         paymentMethod === "cod"
                           ? "text-[var(--color-jade-pink)]"
-                          : "text-gray-400"
+                          : "text-black"
                       }
                       size={24}
                     />
@@ -182,7 +183,7 @@ export default function CheckoutPage() {
                       <h3 className="font-semibold text-[var(--jade-text)]">
                         Cash on Delivery (COD)
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-black dark:text-gray-400 mt-1">
                         Pay when you receive the product at your doorstep.
                       </p>
                     </div>
@@ -210,7 +211,7 @@ export default function CheckoutPage() {
                       className={
                         paymentMethod === "esewa"
                           ? "text-green-600"
-                          : "text-gray-400"
+                          : "text-black"
                       }
                       size={24}
                     />
@@ -218,7 +219,7 @@ export default function CheckoutPage() {
                       <h3 className="font-semibold text-[var(--jade-text)]">
                         Pay via eSewa
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-black dark:text-gray-400 mt-1">
                         Send payment securely using your eSewa mobile wallet.
                       </p>
                     </div>
@@ -254,7 +255,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full text-center py-4 font-semibold uppercase tracking-widest transition-all ${loading ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-[var(--color-jade-pink)] text-white hover:bg-black shadow-lg shadow-[var(--color-jade-pink)]/30"}`}
+              className={`w-full text-center py-4 font-semibold uppercase tracking-widest transition-all ${loading ? "bg-gray-300 text-black cursor-not-allowed" : "bg-[var(--color-jade-pink)] text-white hover:bg-black shadow-lg shadow-[var(--color-jade-pink)]/30"}`}
             >
               {loading ? "Processing Order..." : "Place Order Now"}
             </button>
@@ -287,19 +288,19 @@ export default function CheckoutPage() {
                     </h4>
                   </div>
                   <div className="text-sm font-medium text-[var(--jade-muted)]">
-                    ${(item.price * item.qty).toFixed(2)}
+                    {formatPrice(item.price * item.qty)}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-between items-center mb-4 text-gray-600 dark:text-gray-400 text-sm">
+            <div className="flex justify-between items-center mb-4 text-black dark:text-gray-400 text-sm">
               <span>Subtotal</span>
               <span className="font-medium text-[var(--jade-text)]">
-                ${cartTotal.toFixed(2)}
+                {formatPrice(cartTotal)}
               </span>
             </div>
-            <div className="flex justify-between items-center mb-6 text-gray-600 dark:text-gray-400 text-sm">
+            <div className="flex justify-between items-center mb-6 text-black dark:text-gray-400 text-sm">
               <span>Shipping</span>
               <span className="text-green-600 font-medium font-bold">Free</span>
             </div>
@@ -309,9 +310,9 @@ export default function CheckoutPage() {
                 Total
               </span>
               <div className="text-right">
-                <p className="text-xs text-gray-400 mb-1">USD</p>
+                <p className="text-xs text-black mb-1">NPR</p>
                 <span className="font-serif text-3xl font-semibold text-[var(--color-jade-pink)]">
-                  ${cartTotal.toFixed(2)}
+                  {formatPrice(cartTotal)}
                 </span>
               </div>
             </div>

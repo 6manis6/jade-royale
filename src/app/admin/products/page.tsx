@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Search, Edit2, Trash2, Package, Star, Tag } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Package, Tag } from "lucide-react";
 import Link from "next/link";
+import { formatPrice } from "@/lib/currency";
 
 interface Product {
   _id: string;
@@ -11,7 +12,6 @@ interface Product {
   category: string;
   stock: number;
   badge?: string;
-  rating: number;
 }
 
 export default function AdminProducts() {
@@ -126,9 +126,7 @@ export default function AdminProducts() {
               <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-[var(--jade-text)]">
                 Stock
               </th>
-              <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-[var(--jade-text)]">
-                Rating
-              </th>
+
               <th className="px-6 py-4 text-xs uppercase tracking-wider font-bold text-[var(--jade-text)]">
                 Actions
               </th>
@@ -169,7 +167,7 @@ export default function AdminProducts() {
                     </div>
                   </td>
                   <td className="px-6 py-4 font-bold text-[var(--jade-text)]">
-                    ${product.price.toFixed(2)}
+                    {formatPrice(product.price)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-sm">
@@ -190,14 +188,7 @@ export default function AdminProducts() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1 text-sm text-yellow-500">
-                      <Star size={14} fill="currentColor" />
-                      <span className="text-[var(--jade-text)] font-bold">
-                        {product.rating}
-                      </span>
-                    </div>
-                  </td>
+
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Link

@@ -92,7 +92,7 @@ export default function AdminLayout({
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(233,30,140,0.08),_transparent_55%)] bg-[var(--jade-bg)] flex">
       {/* Sidebar */}
       <aside
-        className={`bg-[var(--jade-card)] border-r border-[var(--jade-border)] transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-20"} flex flex-col`}
+        className={`sticky top-0 h-screen overflow-y-auto bg-[var(--jade-card)] border-r border-[var(--jade-border)] transition-all duration-300 ${isSidebarOpen ? "w-64" : "w-20"} flex flex-col z-20 shrink-0`}
       >
         <div className="p-6 flex items-center justify-between border-b border-[var(--jade-border)]">
           <Link

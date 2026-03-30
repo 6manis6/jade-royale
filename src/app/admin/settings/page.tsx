@@ -7,28 +7,47 @@ export default function AdminSettings() {
   const [slider, setSlider] = useState<
     { title: string; subtitle: string; image: string; link: string }[]
   >([]);
+  const [promoBanner, setPromoBanner] = useState({
+    subtitle: "A nature's touch",
+    titleHighlight: "Get 20%",
+    title: "off on all \ncosmetic cream \npacks",
+    description: "Start from",
+    priceHighlight: "Rs 80.00",
+    link: "/shop",
+    image: "https://images.unsplash.com/photo-1599305090598-fe179d501227?q=80&w=800&auto=format&fit=crop",
+  });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/settings?key=hero_slider")
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.data) {
-          setSlider(data.data);
-          return;
-        }
-        setSlider([{ title: "", subtitle: "", image: "", link: "/shop" }]);
+        if (data.success && data.data) setSlider(data.data);
+        else setSlider([{ title: "", subtitle: "", image: "", link: "/shop" }]);
+      });
+      
+    fetch("/api/settings?key=promo_banner")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) setPromoBanner(data.data);
       });
   }, []);
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      await fetch("/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: "hero_slider", value: slider }),
-      });
+      await Promise.all([
+        fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "hero_slider", value: slider }),
+        }),
+        fetch("/api/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "promo_banner", value: promoBanner }),
+        })
+      ]);
       alert("Settings saved successfully!");
     } catch (err) {
       console.error(err);
@@ -150,13 +169,85 @@ export default function AdminSettings() {
           Add Another Slide
         </button>
 
+        {/* Promo Banner Settings Section */}
+        <div className="pt-8 border-t border-[var(--jade-border)]">
+          <h3 className="text-xl font-serif text-[var(--jade-text)] mb-6">Promo Banner Settings</h3>
+          <div className="p-6 border border-[var(--jade-border)] rounded-2xl bg-[var(--jade-bg)] space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--jade-text)] uppercase tracking-widest">Subtitle (Top text)</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+                  value={promoBanner.subtitle}
+                  onChange={(e) => setPromoBanner({ ...promoBanner, subtitle: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--jade-text)] uppercase tracking-widest">Title Highlight (Pink text)</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+                  value={promoBanner.titleHighlight}
+                  onChange={(e) => setPromoBanner({ ...promoBanner, titleHighlight: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-xs font-bold text-[var(--jade-text)] uppercase tracking-widest">Main Title (You can use \n for breaks)</label>
+                <textarea
+                  className="w-full px-4 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+                  value={promoBanner.title}
+                  rows={2}
+                  onChange={(e) => setPromoBanner({ ...promoBanner, title: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--jade-text)] uppercase tracking-widest">Description</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+                  value={promoBanner.description}
+                  onChange={(e) => setPromoBanner({ ...promoBanner, description: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[var(--jade-text)] uppercase tracking-widest">Price Highlight</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+                  value={promoBanner.priceHighlight}
+                  onChange={(e) => setPromoBanner({ ...promoBanner, priceHighlight: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-xs font-bold text-[var(--jade-text)] uppercase tracking-widest">Image URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    className="flex-grow px-4 py-2 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+                    value={promoBanner.image}
+                    onChange={(e) => setPromoBanner({ ...promoBanner, image: e.target.value })}
+                  />
+                  <div className="w-12 h-12 bg-[var(--jade-bg)] border border-[var(--jade-border)] rounded-xl flex items-center justify-center overflow-hidden">
+                    {promoBanner.image ? (
+                      <img src={promoBanner.image} className="w-full h-full object-cover" />
+                    ) : (
+                      <ImageIcon size={20} className="text-[var(--jade-muted)]" />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <button
           onClick={handleSave}
           disabled={loading}
           className="w-full bg-[var(--color-jade-pink)] text-white py-4 rounded-xl font-bold uppercase tracking-widest hover:bg-black transition-all shadow-xl shadow-pink-200 flex items-center justify-center gap-3 disabled:bg-[var(--jade-border)] disabled:text-[var(--jade-muted)]"
         >
           <Save size={20} />
-          {loading ? "Saving Settings..." : "Save Slider Settings"}
+          {loading ? "Saving Settings..." : "Save All Settings"}
         </button>
       </div>
     </div>

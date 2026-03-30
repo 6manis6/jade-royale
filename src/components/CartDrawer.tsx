@@ -4,6 +4,7 @@ import { useCart } from "@/context/CartContext";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { formatPrice } from "@/lib/currency";
 
 export default function CartDrawer() {
   const {
@@ -40,7 +41,7 @@ export default function CartDrawer() {
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 space-y-4">
+            <div className="flex flex-col items-center justify-center h-full text-black space-y-4">
               <ShoppingBag size={48} strokeWidth={1} />
               <p>Your cart is empty</p>
               <button
@@ -71,13 +72,13 @@ export default function CartDrawer() {
                       </h3>
                       <button
                         onClick={() => removeFromCart(item.productId)}
-                        className="text-gray-400 hover:text-red-500 transition-colors"
+                        className="text-black hover:text-red-500 transition-colors"
                       >
                         <X size={16} />
                       </button>
                     </div>
                     <p className="text-[var(--color-jade-pink)] font-medium mt-1">
-                      ${item.price.toFixed(2)}
+                      {formatPrice(item.price)}
                     </p>
                   </div>
 
@@ -115,7 +116,7 @@ export default function CartDrawer() {
                 Subtotal
               </span>
               <span className="font-serif text-2xl font-medium">
-                ${cartTotal.toFixed(2)}
+                {formatPrice(cartTotal)}
               </span>
             </div>
             <p className="text-xs text-[var(--jade-muted)] mb-6 font-mono">

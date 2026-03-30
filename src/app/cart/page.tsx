@@ -3,6 +3,7 @@
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { Minus, Plus, X, ArrowRight, ShieldCheck } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQty, cartTotal } = useCart();
@@ -15,7 +16,7 @@ export default function CartPage() {
 
       {cart.length === 0 ? (
         <div className="text-center py-20 bg-[var(--jade-card)] rounded-2xl max-w-2xl mx-auto border border-transparent dark:border-gray-800">
-          <p className="font-serif text-2xl text-gray-500 dark:text-gray-400 mb-6">
+          <p className="font-serif text-2xl text-black dark:text-gray-400 mb-6">
             Your cart is currently empty.
           </p>
           <Link href="/shop" className="btn-primary inline-block">
@@ -28,7 +29,7 @@ export default function CartPage() {
           <div className="flex-1 w-full overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[600px]">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 text-sm tracking-wider uppercase text-gray-500 dark:text-gray-400">
+                <tr className="border-b border-gray-200 dark:border-gray-800 text-sm tracking-wider uppercase text-black dark:text-gray-400">
                   <th className="pb-4 font-medium">Product</th>
                   <th className="pb-4 font-medium">Price</th>
                   <th className="pb-4 font-medium">Quantity</th>
@@ -45,7 +46,7 @@ export default function CartPage() {
                       <div className="flex items-center gap-4">
                         <button
                           onClick={() => removeFromCart(item.productId)}
-                          className="text-gray-300 hover:text-red-500 transition-colors p-2"
+                          className="text-black hover:text-red-500 transition-colors p-2"
                         >
                           <X size={18} />
                         </button>
@@ -65,7 +66,7 @@ export default function CartPage() {
                       </div>
                     </td>
                     <td className="py-6 text-[var(--jade-muted)] font-medium">
-                      ${item.price.toFixed(2)}
+                      {formatPrice(item.price)}
                     </td>
                     <td className="py-6">
                       <div className="inline-flex items-center border border-gray-200 dark:border-gray-700 rounded bg-[var(--jade-card)]">
@@ -73,7 +74,7 @@ export default function CartPage() {
                           onClick={() =>
                             updateQty(item.productId, item.qty - 1)
                           }
-                          className="p-2 hover:bg-[var(--jade-bg)] text-gray-500 transition-colors"
+                          className="p-2 hover:bg-[var(--jade-bg)] text-black transition-colors"
                           disabled={item.qty <= 1}
                         >
                           <Minus size={14} />
@@ -85,14 +86,14 @@ export default function CartPage() {
                           onClick={() =>
                             updateQty(item.productId, item.qty + 1)
                           }
-                          className="p-2 hover:bg-[var(--jade-bg)] text-gray-500 transition-colors"
+                          className="p-2 hover:bg-[var(--jade-bg)] text-black transition-colors"
                         >
                           <Plus size={14} />
                         </button>
                       </div>
                     </td>
                     <td className="py-6 text-right font-semibold text-[var(--color-jade-pink)]">
-                      ${(item.price * item.qty).toFixed(2)}
+                      {formatPrice(item.price * item.qty)}
                     </td>
                   </tr>
                 ))}
@@ -116,11 +117,11 @@ export default function CartPage() {
                 Order Summary
               </h2>
 
-              <div className="flex justify-between items-center mb-4 text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between items-center mb-4 text-black dark:text-gray-400">
                 <span>Subtotal</span>
-                <span className="font-medium">${cartTotal.toFixed(2)}</span>
+                <span className="font-medium">{formatPrice(cartTotal)}</span>
               </div>
-              <div className="flex justify-between items-center mb-6 text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between items-center mb-6 text-black dark:text-gray-400">
                 <span>Shipping</span>
                 <span>Calculated next step</span>
               </div>
@@ -130,7 +131,7 @@ export default function CartPage() {
                   Total
                 </span>
                 <span className="font-serif text-3xl font-semibold text-[var(--color-jade-pink)]">
-                  ${cartTotal.toFixed(2)}
+                  {formatPrice(cartTotal)}
                 </span>
               </div>
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
+import { formatPrice } from "@/lib/currency";
 
 interface Product {
   _id: string;
@@ -87,11 +88,11 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="flex items-center justify-center gap-2">
           {product.originalPrice && (
             <span className="text-[var(--jade-muted)] line-through text-sm font-medium opacity-60">
-              ${product.originalPrice.toFixed(2)}
+              {formatPrice(product.originalPrice)}
             </span>
           )}
           <span className="text-[var(--color-jade-pink)] font-semibold">
-            ${product.price.toFixed(2)}
+            {formatPrice(product.price)}
           </span>
         </div>
       </div>

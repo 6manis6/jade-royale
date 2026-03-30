@@ -28,7 +28,7 @@ interface Order {
 }
 
 const formatMoney = (value: number) =>
-  value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  `Rs ${value.toLocaleString("en-IN")}`;
 
 const statusStyles: Record<string, string> = {
   Pending: "bg-amber-100 text-amber-700",

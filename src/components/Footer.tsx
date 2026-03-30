@@ -116,22 +116,6 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/track-order"
-                  className="text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] text-sm font-medium transition-colors"
-                >
-                  Track Order
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/returns"
-                  className="text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] text-sm font-medium transition-colors"
-                >
-                  Returns & Exchanges
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="/faq"
                   className="text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] text-sm font-medium transition-colors"
                 >

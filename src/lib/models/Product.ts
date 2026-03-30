@@ -14,11 +14,18 @@ const ProductSchema = new mongoose.Schema(
     description: { type: String, required: true },
     stock: { type: Number, required: true, default: 0 },
     badge: { type: String, enum: ["NEW", "SALE", "HOT", ""] },
-    rating: { type: Number, default: 0 },
-    reviewCount: { type: Number, default: 0 },
+    variants: [
+      {
+        colorName: { type: String },
+        colorHex: { type: String },
+        price: { type: Number },
+        images: [{ type: String }]
+      }
+    ]
   },
   { timestamps: true },
 );
 
-export default mongoose.models.Product ||
-  mongoose.model("Product", ProductSchema);
+delete mongoose.models.Product;
+const Product = mongoose.model("Product", ProductSchema);
+export default Product;
