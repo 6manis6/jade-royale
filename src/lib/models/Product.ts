@@ -19,6 +19,7 @@ const ProductSchema = new mongoose.Schema(
       {
         colorName: { type: String },
         shadeName: { type: String },
+        shadeImage: { type: String },
         colorHex: { type: String },
         price: { type: Number },
         images: [{ type: String }],

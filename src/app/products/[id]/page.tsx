@@ -3,13 +3,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useCart } from "@/context/CartContext";
 import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
   Minus,
   Plus,
   ShoppingBag,
-  Truck,
-  ShieldCheck,
   Heart,
   ChevronLeft,
   ChevronRight,
@@ -31,7 +30,13 @@ export default function ProductDetail() {
   const { data: session } = useSession();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
-  
+  const [suggestedProducts, setSuggestedProducts] = useState<any[]>([]);
+  const [suggestedWishlistIds, setSuggestedWishlistIds] = useState<Set<string>>(
+    new Set(),
+  );
+  const [suggestedWishlistLoadingIds, setSuggestedWishlistLoadingIds] =
+    useState<Set<string>>(new Set());
+
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [isMagnifierVisible, setIsMagnifierVisible] = useState(false);
   const [magnifierPos, setMagnifierPos] = useState({ x: 0, y: 0 });
@@ -56,20 +61,40 @@ export default function ProductDetail() {
         console.error("Failed to fetch product", err);
         setLoading(false);
       });
-      
+
     if (session) {
       fetch("/api/user/profile")
         .then((res) => res.json())
         .then((data) => {
           if (data.success && data.data.wishlist) {
-            const inWishlist = data.data.wishlist.some((item: any) => 
-               typeof item === 'string' ? item === id : item._id === id
+            const wishlistIds = new Set<string>(
+              data.data.wishlist.map((item: any) =>
+                typeof item === "string" ? item : String(item._id),
+              ),
             );
+            const inWishlist = wishlistIds.has(id);
             setIsWishlisted(inWishlist);
+            setSuggestedWishlistIds(wishlistIds);
           }
         });
+    } else {
+      setIsWishlisted(false);
+      setSuggestedWishlistIds(new Set());
     }
   }, [id, session]);
+
+  useEffect(() => {
+    fetch("/api/products?limit=30")
+      .then((res) => res.json())
+      .then((data) => {
+        if (!data.success || !Array.isArray(data.data)) return;
+
+        const filtered = data.data.filter((p: any) => p._id !== id);
+        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+        setSuggestedProducts(shuffled.slice(0, 4));
+      })
+      .catch((err) => console.error("Failed to fetch suggested products", err));
+  }, [id]);
 
   if (loading)
     return (
@@ -98,7 +123,10 @@ export default function ProductDetail() {
   const displayPrice = currentVariant ? currentVariant.price : product.price;
   const discountPercent =
     product.originalPrice > displayPrice
-      ? Math.round(((product.originalPrice - displayPrice) / product.originalPrice) * 100)
+      ? Math.round(
+          ((product.originalPrice - displayPrice) / product.originalPrice) *
+            100,
+        )
       : 0;
 
   const handleAddToCart = () => {
@@ -138,16 +166,18 @@ export default function ProductDetail() {
       router.push("/login");
       return;
     }
-    
+
     setWishlistLoading(true);
     try {
       if (isWishlisted) {
-        await fetch(`/api/user/wishlist?productId=${product._id}`, { method: 'DELETE' });
+        await fetch(`/api/user/wishlist?productId=${product._id}`, {
+          method: "DELETE",
+        });
         setIsWishlisted(false);
       } else {
-        await fetch('/api/user/wishlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await fetch("/api/user/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId: product._id }),
         });
         setIsWishlisted(true);
@@ -156,6 +186,52 @@ export default function ProductDetail() {
       console.error(e);
     }
     setWishlistLoading(false);
+  };
+
+  const toggleSuggestedWishlist = async (productId: string) => {
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    setSuggestedWishlistLoadingIds((prev) => new Set(prev).add(productId));
+    const currentlyWishlisted = suggestedWishlistIds.has(productId);
+
+    try {
+      if (currentlyWishlisted) {
+        await fetch(`/api/user/wishlist?productId=${productId}`, {
+          method: "DELETE",
+        });
+        setSuggestedWishlistIds((prev) => {
+          const next = new Set(prev);
+          next.delete(productId);
+          return next;
+        });
+      } else {
+        await fetch("/api/user/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+        setSuggestedWishlistIds((prev) => {
+          const next = new Set(prev);
+          next.add(productId);
+          return next;
+        });
+      }
+
+      if (productId === product._id) {
+        setIsWishlisted(!currentlyWishlisted);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    setSuggestedWishlistLoadingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(productId);
+      return next;
+    });
   };
 
   const nextImage = () => {
@@ -174,130 +250,134 @@ export default function ProductDetail() {
     <div className="container mx-auto px-4 md:px-8 py-16">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
         {/* Images Selection Gallery */}
-        <div className="relative flex gap-4 items-start">
-          {/* Gallery Thumbnails */}
-          {displayImages.length > 1 && (
-            <div className="flex flex-col gap-3 h-[450px] md:h-[600px] overflow-y-auto pr-1 scrollbar-none">
-              {displayImages.map((img: string, idx: number) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentImageIdx(idx)}
-                  className={`w-16 md:w-20 h-20 md:h-24 shrink-0 bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden border-2 transition-all ${currentImageIdx === idx ? "border-[var(--color-jade-pink)] brightness-100" : "border-transparent brightness-75 hover:brightness-100"}`}
-                >
-                  <img
-                    src={img}
-                    alt="thumbnail"
-                    className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div
-            ref={imageContainerRef}
-            className="relative flex-1 bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center p-10 h-[450px] md:h-[600px] border border-transparent dark:border-gray-800 overflow-hidden group"
-            onMouseEnter={() => setIsMagnifierVisible(true)}
-            onMouseLeave={() => setIsMagnifierVisible(false)}
-            onMouseMove={(e) => {
-              const rect = imageContainerRef.current?.getBoundingClientRect();
-              if (!rect) return;
-              const x = e.clientX - rect.left;
-              const y = e.clientY - rect.top;
-              setMagnifierPos({ x, y });
-            }}
-          >
-            {product.badge && (
-              <span
-                className={`absolute top-6 left-6 text-sm font-bold text-white px-3 py-1 rounded-sm z-10 ${product.badge === "SALE" ? "bg-red-500" : product.badge === "NEW" ? "bg-gray-900" : "bg-[var(--color-jade-pink)]"}`}
-              >
-                {product.badge}
-              </span>
-            )}
-
+        <div className="flex flex-col gap-8">
+          <div className="relative flex gap-4 items-start">
+            {/* Gallery Thumbnails */}
             {displayImages.length > 1 && (
-              <>
-                <button
-                  onClick={prevImage}
-                  className="absolute left-4 bg-white/80 dark:bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 text-black dark:text-white shadow-xl hover:bg-white"
-                >
-                  <ChevronLeft size={24} />
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-4 bg-white/80 dark:bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 text-black dark:text-white shadow-xl hover:bg-white"
-                >
-                  <ChevronRight size={24} />
-                </button>
-              </>
+              <div className="flex flex-col gap-3 h-[450px] md:h-[600px] overflow-y-auto pr-1 scrollbar-none">
+                {displayImages.map((img: string, idx: number) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentImageIdx(idx)}
+                    className={`w-16 md:w-20 h-20 md:h-24 shrink-0 bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden border-2 transition-all ${currentImageIdx === idx ? "border-[var(--color-jade-pink)] brightness-100" : "border-transparent brightness-75 hover:brightness-100"}`}
+                  >
+                    <img
+                      src={img}
+                      alt="thumbnail"
+                      className="w-full h-full object-cover mix-blend-multiply dark:mix-blend-normal"
+                    />
+                  </button>
+                ))}
+              </div>
             )}
 
-            {displayImages[currentImageIdx] ? (
-              <>
-                <img
-                  src={displayImages[currentImageIdx]}
-                  alt={`${product.name} preview`}
-                  className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-300 select-none"
-                  draggable={false}
-                  style={{ pointerEvents: "none" }}
-                />
-                {/* Magnifier box overlay */}
-                {isMagnifierVisible && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: Math.max(
-                        0,
-                        Math.min(
-                          magnifierPos.x - magnifierBoxSize / 2,
-                          (imageContainerRef.current?.offsetWidth || 0) -
-                            magnifierBoxSize,
-                        ),
-                      ),
-                      top: Math.max(
-                        0,
-                        Math.min(
-                          magnifierPos.y - magnifierBoxSize / 2,
-                          (imageContainerRef.current?.offsetHeight || 0) -
-                            magnifierBoxSize,
-                        ),
-                      ),
-                      width: magnifierBoxSize,
-                      height: magnifierBoxSize,
-                      border: "2px solid #e91e8c",
-                      background: "rgba(255,255,255,0.15)",
-                      pointerEvents: "none",
-                      zIndex: 20,
-                      borderRadius: 8,
-                      boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)",
-                      transition: "border-color 0.2s",
-                    }}
+            <div
+              ref={imageContainerRef}
+              className="relative flex-1 bg-gray-50 dark:bg-gray-900 rounded-2xl flex items-center justify-center p-10 h-[450px] md:h-[600px] border border-transparent dark:border-gray-800 overflow-hidden group"
+              onMouseEnter={() => setIsMagnifierVisible(true)}
+              onMouseLeave={() => setIsMagnifierVisible(false)}
+              onMouseMove={(e) => {
+                const rect = imageContainerRef.current?.getBoundingClientRect();
+                if (!rect) return;
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                setMagnifierPos({ x, y });
+              }}
+            >
+              {product.badge && (
+                <span
+                  className={`absolute top-6 left-6 text-sm font-bold text-white px-3 py-1 rounded-sm z-10 ${product.badge === "SALE" ? "bg-red-500" : product.badge === "NEW" ? "bg-gray-900" : "bg-[var(--color-jade-pink)]"}`}
+                >
+                  {product.badge}
+                </span>
+              )}
+
+              {displayImages.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-4 bg-white/80 dark:bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 text-black dark:text-white shadow-xl hover:bg-white"
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-4 bg-white/80 dark:bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 text-black dark:text-white shadow-xl hover:bg-white"
+                  >
+                    <ChevronRight size={24} />
+                  </button>
+                </>
+              )}
+
+              {displayImages[currentImageIdx] ? (
+                <>
+                  <img
+                    src={displayImages[currentImageIdx]}
+                    alt={`${product.name} preview`}
+                    className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal transition-all duration-300 select-none"
+                    draggable={false}
+                    style={{ pointerEvents: "none" }}
                   />
-                )}
-                {/* Floating zoomed image */}
-              </>
-            ) : (
-              <div className="text-[var(--jade-muted)]">No image available</div>
+                  {/* Magnifier box overlay */}
+                  {isMagnifierVisible && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: Math.max(
+                          0,
+                          Math.min(
+                            magnifierPos.x - magnifierBoxSize / 2,
+                            (imageContainerRef.current?.offsetWidth || 0) -
+                              magnifierBoxSize,
+                          ),
+                        ),
+                        top: Math.max(
+                          0,
+                          Math.min(
+                            magnifierPos.y - magnifierBoxSize / 2,
+                            (imageContainerRef.current?.offsetHeight || 0) -
+                              magnifierBoxSize,
+                          ),
+                        ),
+                        width: magnifierBoxSize,
+                        height: magnifierBoxSize,
+                        border: "2px solid #e91e8c",
+                        background: "rgba(255,255,255,0.15)",
+                        pointerEvents: "none",
+                        zIndex: 20,
+                        borderRadius: 8,
+                        boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)",
+                        transition: "border-color 0.2s",
+                      }}
+                    />
+                  )}
+                  {/* Floating zoomed image */}
+                </>
+              ) : (
+                <div className="text-[var(--jade-muted)]">
+                  No image available
+                </div>
+              )}
+            </div>
+
+            {/* Floating zoomed preview (outside overflow-hidden image container) */}
+            {isMagnifierVisible && displayImages[currentImageIdx] && (
+              <div
+                className="hidden lg:block absolute top-0 left-full ml-6 z-30 rounded-xl border"
+                style={{
+                  width: `min(${zoomPreviewSize}px, 55vw)`,
+                  height: `min(${zoomPreviewSize}px, 55vw)`,
+                  borderColor: "#e91e8c",
+                  backgroundColor: "#fff",
+                  backgroundImage: `url(${displayImages[currentImageIdx]})`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: `${zoomLevel * 100}%`,
+                  backgroundPosition: `${Math.max(0, Math.min((magnifierPos.x / (imageContainerRef.current?.offsetWidth || 1)) * 100, 100))}% ${Math.max(0, Math.min((magnifierPos.y / (imageContainerRef.current?.offsetHeight || 1)) * 100, 100))}%`,
+                  boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)",
+                }}
+              />
             )}
           </div>
-
-          {/* Floating zoomed preview (outside overflow-hidden image container) */}
-          {isMagnifierVisible && displayImages[currentImageIdx] && (
-            <div
-              className="hidden lg:block absolute top-0 left-full ml-6 z-30 rounded-xl border"
-              style={{
-                width: `min(${zoomPreviewSize}px, 55vw)`,
-                height: `min(${zoomPreviewSize}px, 55vw)`,
-                borderColor: "#e91e8c",
-                backgroundColor: "#fff",
-                backgroundImage: `url(${displayImages[currentImageIdx]})`,
-                backgroundRepeat: "no-repeat",
-                backgroundSize: `${zoomLevel * 100}%`,
-                backgroundPosition: `${Math.max(0, Math.min((magnifierPos.x / (imageContainerRef.current?.offsetWidth || 1)) * 100, 100))}% ${Math.max(0, Math.min((magnifierPos.y / (imageContainerRef.current?.offsetHeight || 1)) * 100, 100))}%`,
-                boxShadow: "0 4px 24px 0 rgba(0,0,0,0.10)",
-              }}
-            />
-          )}
         </div>
 
         {/* Details */}
@@ -332,19 +412,15 @@ export default function ProductDetail() {
           {variants.length > 0 && (
             <div className="mb-8">
               <h4 className="text-sm font-semibold uppercase tracking-widest text-[var(--jade-text)] mb-4">
-                {variantMode === "shade" ? "Shade" : "Color"}:{" "}
-                <span className="text-[var(--jade-muted)]">
-                  {variantMode === "shade"
-                    ? currentVariant?.shadeName || currentVariant?.colorName
-                    : currentVariant?.colorName || currentVariant?.shadeName}
-                </span>
+                {variantMode === "shade"
+                  ? "Shade"
+                  : `Color: ${currentVariant?.colorName || currentVariant?.shadeName || ""}`}
               </h4>
               {variantMode === "shade" ? (
                 <div className="flex flex-wrap gap-5">
                   {variants.map((variant: any, idx: number) => {
                     const shadeLabel = variant.shadeName || variant.colorName;
-                    const shadeImage =
-                      variant.images?.[0] || product.images?.[0] || "";
+                    const shadeImage = variant.shadeImage || "";
 
                     return (
                       <button
@@ -357,7 +433,9 @@ export default function ProductDetail() {
                         title={shadeLabel}
                         type="button"
                       >
-                        <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-[var(--jade-bg)] ${selectedVariantIdx === idx ? "border-[var(--color-jade-pink)] shadow-md scale-110" : "border-[var(--jade-border)] group-hover:border-[var(--color-jade-pink)]"}`}>
+                        <div
+                          className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-[var(--jade-bg)] ${selectedVariantIdx === idx ? "border-[var(--color-jade-pink)] shadow-md scale-110" : "border-[var(--jade-border)] group-hover:border-[var(--color-jade-pink)]"}`}
+                        >
                           {shadeImage ? (
                             <img
                               src={shadeImage}
@@ -365,10 +443,14 @@ export default function ProductDetail() {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <span className="text-[10px] text-[var(--jade-muted)]">No img</span>
+                            <span className="text-[10px] text-[var(--jade-muted)]">
+                              No img
+                            </span>
                           )}
                         </div>
-                        <p className={`text-xs font-medium text-center line-clamp-2 mt-1 ${selectedVariantIdx === idx ? "text-[var(--color-jade-pink)]" : "text-[var(--jade-text)] group-hover:text-[var(--color-jade-pink)]"}`}>
+                        <p
+                          className={`text-xs font-medium text-center line-clamp-2 mt-1 ${selectedVariantIdx === idx ? "text-[var(--color-jade-pink)]" : "text-[var(--jade-text)] group-hover:text-[var(--color-jade-pink)]"}`}
+                        >
                           {shadeLabel}
                         </p>
                       </button>
@@ -398,8 +480,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-
-
           <div className="space-y-6 max-w-md">
             <div className="flex items-center gap-4">
               <div className="flex items-center border border-gray-200 dark:border-gray-800 rounded-xl h-14 bg-[var(--jade-card)]">
@@ -419,12 +499,17 @@ export default function ProductDetail() {
                   <Plus size={18} />
                 </button>
               </div>
-              <button 
+              <button
                 onClick={toggleWishlist}
                 disabled={wishlistLoading}
-                className={`w-14 h-14 flex items-center justify-center border rounded-xl transition-all font-medium bg-[var(--jade-card)] group ${isWishlisted ? 'border-red-500 text-red-500' : 'border-gray-200 dark:border-gray-800 text-[var(--jade-text)] hover:text-red-500 hover:border-red-500'}`}
+                className={`w-14 h-14 flex items-center justify-center border rounded-xl transition-all font-medium bg-[var(--jade-card)] group ${isWishlisted ? "border-red-500 text-red-500" : "border-gray-200 dark:border-gray-800 text-[var(--jade-text)] hover:text-red-500 hover:border-red-500"}`}
               >
-                <Heart size={22} className={isWishlisted ? "fill-current" : "group-hover:fill-current"} />
+                <Heart
+                  size={22}
+                  className={
+                    isWishlisted ? "fill-current" : "group-hover:fill-current"
+                  }
+                />
               </button>
             </div>
 
@@ -443,17 +528,100 @@ export default function ProductDetail() {
               Buy it Now
             </button>
           </div>
-
-          <div className="mt-10 pt-8 border-t border-[var(--jade-border)]">
-            <h3 className="text-lg font-serif font-semibold text-[var(--jade-text)] mb-4">
-              Product Description
-            </h3>
-            <p className="text-[var(--jade-muted)] leading-relaxed max-w-2xl text-sm md:text-base whitespace-pre-wrap">
-              {product.description}
-            </p>
-          </div>
         </div>
       </div>
+
+      <section className="mt-14 pt-8 border-t border-[var(--jade-border)] w-full max-w-full">
+        <h3 className="text-2xl font-serif font-semibold text-[var(--jade-text)] mb-5">
+          Product Description
+        </h3>
+        <p className="text-[var(--jade-muted)] leading-relaxed text-sm md:text-base whitespace-pre-wrap wrap-anywhere">
+          {product.description}
+        </p>
+      </section>
+
+      {suggestedProducts.length > 0 && (
+        <section className="mt-12">
+          <h3 className="font-serif text-2xl text-[var(--jade-text)] mb-4">
+            You May Also Like
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {suggestedProducts.map((item) => {
+              const itemDiscount =
+                item.originalPrice && item.originalPrice > item.price
+                  ? Math.round(
+                      ((item.originalPrice - item.price) / item.originalPrice) *
+                        100,
+                    )
+                  : 0;
+              const isItemWishlisted = suggestedWishlistIds.has(item._id);
+              const isItemWishlistLoading = suggestedWishlistLoadingIds.has(
+                item._id,
+              );
+
+              return (
+                <Link
+                  key={item._id}
+                  href={`/products/${item._id}`}
+                  className="group relative border border-[var(--jade-border)] rounded-xl p-3 bg-[var(--jade-card)] hover:shadow-md transition-shadow"
+                >
+                  {itemDiscount > 0 && (
+                    <span className="absolute top-2 left-2 z-10 rounded-full bg-[var(--color-jade-pink)] px-3.5 py-1.5 text-xs font-semibold text-white">
+                      {itemDiscount}% OFF
+                    </span>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void toggleSuggestedWishlist(item._id);
+                    }}
+                    className={`absolute top-2 right-2 z-10 h-12 w-12 rounded-full border flex items-center justify-center transition-colors ${
+                      isItemWishlisted
+                        ? "bg-[var(--color-jade-pink)] text-white border-[var(--color-jade-pink)]"
+                        : "bg-[var(--jade-card)] text-[var(--jade-text)] border-[var(--jade-border)] hover:border-[var(--color-jade-pink)]"
+                    }`}
+                    aria-label={
+                      isItemWishlisted
+                        ? "Remove from wishlist"
+                        : "Add to wishlist"
+                    }
+                    disabled={isItemWishlistLoading}
+                  >
+                    <Heart
+                      className="w-6 h-6"
+                      fill={isItemWishlisted ? "currentColor" : "none"}
+                    />
+                  </button>
+
+                  <div className="w-full aspect-square bg-[var(--jade-bg)] rounded-lg overflow-hidden flex items-center justify-center mb-3">
+                    <img
+                      src={item.images?.[0] || ""}
+                      alt={item.name}
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                  <p className="text-sm font-medium text-[var(--jade-text)] line-clamp-2 mb-1">
+                    {item.name}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {item.originalPrice && item.originalPrice > item.price && (
+                      <span className="text-[var(--jade-muted)] line-through text-xs font-medium opacity-70">
+                        {formatPrice(item.originalPrice)}
+                      </span>
+                    )}
+                    <span className="text-sm font-semibold text-[var(--color-jade-pink)]">
+                      {formatPrice(item.price)}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

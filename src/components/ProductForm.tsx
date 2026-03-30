@@ -24,6 +24,7 @@ export default function ProductForm() {
     variants: [] as Array<{
       colorName: string;
       shadeName: string;
+      shadeImage: string;
       colorHex: string;
       price: number;
       images: string[];
@@ -44,6 +45,7 @@ export default function ProductForm() {
             const variants = (data.data.variants || []).map((v: any) => ({
               colorName: v.colorName || "",
               shadeName: v.shadeName || "",
+              shadeImage: v.shadeImage || "",
               colorHex: v.colorHex || "#ff0000",
               price: v.price || data.data.price || 0,
               images: v.images?.length ? v.images : [""],
@@ -80,6 +82,7 @@ export default function ProductForm() {
         ...v,
         colorName: v.colorName.trim(),
         shadeName: v.shadeName.trim(),
+        shadeImage: v.shadeImage.trim(),
         images: v.images.filter((img) => img.trim().length > 0),
       })),
     };
@@ -214,12 +217,51 @@ export default function ProductForm() {
         {
           colorName: "",
           shadeName: "",
+          shadeImage: "",
           colorHex: "#ff0000",
           price: product.price,
           images: [""],
         },
       ],
     });
+  };
+
+  const handleShadeImageUpload = async (
+    files: FileList | null,
+    variantIdx: number,
+  ) => {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    setUploadError("");
+
+    try {
+      const file = files[0];
+      if (!file.type.startsWith("image/")) {
+        setUploadError(`${file.name}: not an image`);
+        setUploading(false);
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (res.ok && data?.url) {
+        updateVariant(variantIdx, "shadeImage", data.url);
+      } else {
+        setUploadError(data?.error || "Shade image upload failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadError("Unexpected shade image upload error.");
+    }
+
+    setUploading(false);
   };
 
   const updateVariant = (variantIdx: number, field: string, value: any) => {
@@ -539,10 +581,31 @@ export default function ProductForm() {
                         <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
                           Shade Preview Image
                         </label>
-                        <p className="text-xs text-[var(--jade-muted)] mt-2">
-                          Add at least one variant image below. The first image
-                          will be used in the shade selector.
-                        </p>
+                        <div className="space-y-2">
+                          <label className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-jade-pink)] cursor-pointer">
+                            <Upload size={14} /> Upload
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) =>
+                                handleShadeImageUpload(e.target.files, vIdx)
+                              }
+                            />
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="https://..."
+                            className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
+                            value={variant.shadeImage}
+                            onChange={(e) =>
+                              updateVariant(vIdx, "shadeImage", e.target.value)
+                            }
+                          />
+                          <p className="text-xs text-[var(--jade-muted)]">
+                            This image is only for the shade selector thumbnail.
+                          </p>
+                        </div>
                       </div>
                     )}
                     <div>
