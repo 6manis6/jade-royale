@@ -26,7 +26,7 @@ export default function CheckoutPage() {
         <h1 className="font-serif text-3xl mb-4 text-[var(--jade-text)]">
           Your cart is empty
         </h1>
-        <p className="text-black dark:text-gray-400 mb-8">
+        <p className="text-[var(--jade-muted)] mb-8">
           Please add products to your cart before proceeding to checkout.
         </p>
         <button onClick={() => router.push("/shop")} className="btn-primary">
@@ -98,7 +98,7 @@ export default function CheckoutPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium text-black dark:text-gray-300">
+                  <label className="text-sm font-medium text-[var(--jade-text)]">
                     Full Name *
                   </label>
                   <input
@@ -111,7 +111,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
-                  <label className="text-sm font-medium text-black dark:text-gray-300">
+                  <label className="text-sm font-medium text-[var(--jade-text)]">
                     Phone Number *
                   </label>
                   <input
@@ -124,7 +124,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
-                  <label className="text-sm font-medium text-black dark:text-gray-300">
+                  <label className="text-sm font-medium text-[var(--jade-text)]">
                     City / District *
                   </label>
                   <input
@@ -137,7 +137,7 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium text-black dark:text-gray-300">
+                  <label className="text-sm font-medium text-[var(--jade-text)]">
                     Detailed Address (House No, Street) *
                   </label>
                   <input
@@ -175,7 +175,7 @@ export default function CheckoutPage() {
                       className={
                         paymentMethod === "cod"
                           ? "text-[var(--color-jade-pink)]"
-                          : "text-black"
+                          : "text-[var(--jade-muted-strong)]"
                       }
                       size={24}
                     />
@@ -183,7 +183,7 @@ export default function CheckoutPage() {
                       <h3 className="font-semibold text-[var(--jade-text)]">
                         Cash on Delivery (COD)
                       </h3>
-                      <p className="text-sm text-black dark:text-gray-400 mt-1">
+                      <p className="text-sm text-[var(--jade-muted)] mt-1">
                         Pay when you receive the product at your doorstep.
                       </p>
                     </div>
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
                       className={
                         paymentMethod === "esewa"
                           ? "text-green-600"
-                          : "text-black"
+                          : "text-[var(--jade-muted-strong)]"
                       }
                       size={24}
                     />
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
                       <h3 className="font-semibold text-[var(--jade-text)]">
                         Pay via eSewa
                       </h3>
-                      <p className="text-sm text-black dark:text-gray-400 mt-1">
+                      <p className="text-sm text-[var(--jade-muted)] mt-1">
                         Send payment securely using your eSewa mobile wallet.
                       </p>
                     </div>
@@ -294,15 +294,15 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            <div className="flex justify-between items-center mb-4 text-black dark:text-gray-400 text-sm">
+            <div className="flex justify-between items-center mb-4 text-[var(--jade-muted)] text-sm">
               <span>Subtotal</span>
               <span className="font-medium text-[var(--jade-text)]">
                 {formatPrice(cartTotal)}
               </span>
             </div>
-            <div className="flex justify-between items-center mb-6 text-black dark:text-gray-400 text-sm">
+            <div className="flex justify-between items-center mb-6 text-[var(--jade-muted)] text-sm">
               <span>Shipping</span>
-              <span className="text-green-600 font-medium font-bold">Free</span>
+              <span className="text-green-600 font-bold">Free</span>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-6 flex justify-between items-end">
@@ -310,7 +310,7 @@ export default function CheckoutPage() {
                 Total
               </span>
               <div className="text-right">
-                <p className="text-xs text-black mb-1">NPR</p>
+                <p className="text-xs text-[var(--jade-muted)] mb-1">NPR</p>
                 <span className="font-serif text-3xl font-semibold text-[var(--color-jade-pink)]">
                   {formatPrice(cartTotal)}
                 </span>

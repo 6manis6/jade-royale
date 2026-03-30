@@ -14,14 +14,16 @@ const ProductSchema = new mongoose.Schema(
     description: { type: String, required: true },
     stock: { type: Number, required: true, default: 0 },
     badge: { type: String, enum: ["NEW", "SALE", "HOT", ""] },
+    variantType: { type: String, enum: ["color", "shade"], default: "color" },
     variants: [
       {
         colorName: { type: String },
+        shadeName: { type: String },
         colorHex: { type: String },
         price: { type: Number },
-        images: [{ type: String }]
-      }
-    ]
+        images: [{ type: String }],
+      },
+    ],
   },
   { timestamps: true },
 );

@@ -19,8 +19,15 @@ export default function ProductForm() {
     description: "",
     stock: 0,
     badge: "",
+    variantType: "color" as "color" | "shade",
     images: [""],
-    variants: [] as Array<{ colorName: string; colorHex: string; price: number; images: string[] }>,
+    variants: [] as Array<{
+      colorName: string;
+      shadeName: string;
+      colorHex: string;
+      price: number;
+      images: string[];
+    }>,
   });
 
   const [loading, setLoading] = useState(false);
@@ -34,7 +41,26 @@ export default function ProductForm() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            setProduct({ ...data.data, variants: data.data.variants || [], images: data.data.images?.length ? data.data.images : [""] });
+            const variants = (data.data.variants || []).map((v: any) => ({
+              colorName: v.colorName || "",
+              shadeName: v.shadeName || "",
+              colorHex: v.colorHex || "#ff0000",
+              price: v.price || data.data.price || 0,
+              images: v.images?.length ? v.images : [""],
+            }));
+
+            const inferredVariantType =
+              data.data.variantType ||
+              ((data.data.variants || []).some((v: any) => Boolean(v.shadeName))
+                ? "shade"
+                : "color");
+
+            setProduct({
+              ...data.data,
+              variantType: inferredVariantType,
+              variants,
+              images: data.data.images?.length ? data.data.images : [""],
+            });
           }
         });
     }
@@ -50,11 +76,21 @@ export default function ProductForm() {
     const payload = {
       ...product,
       images: product.images.filter((img) => img.trim().length > 0),
-      variants: product.variants.map((v) => ({ ...v, images: v.images.filter((img) => img.trim().length > 0) }))
+      variants: product.variants.map((v) => ({
+        ...v,
+        colorName: v.colorName.trim(),
+        shadeName: v.shadeName.trim(),
+        images: v.images.filter((img) => img.trim().length > 0),
+      })),
     };
 
-    if (payload.images.length === 0 && payload.variants.every((v) => v.images.length === 0)) {
-      setSaveError("Please upload or add at least one generic or variant product image.");
+    if (
+      payload.images.length === 0 &&
+      payload.variants.every((v) => v.images.length === 0)
+    ) {
+      setSaveError(
+        "Please upload or add at least one generic or variant product image.",
+      );
       setLoading(false);
       return;
     }
@@ -89,7 +125,11 @@ export default function ProductForm() {
     setLoading(false);
   };
 
-  const handleImageChange = (index: number, value: string, variantIdx: number = -1) => {
+  const handleImageChange = (
+    index: number,
+    value: string,
+    variantIdx: number = -1,
+  ) => {
     if (variantIdx === -1) {
       const newImages = [...product.images];
       newImages[index] = value;
@@ -101,7 +141,10 @@ export default function ProductForm() {
     }
   };
 
-  const handleImageUpload = async (files: FileList | null, variantIdx: number = -1) => {
+  const handleImageUpload = async (
+    files: FileList | null,
+    variantIdx: number = -1,
+  ) => {
     if (!files || files.length === 0) return;
     setUploading(true);
     setUploadError("");
@@ -119,7 +162,10 @@ export default function ProductForm() {
         const formData = new FormData();
         formData.append("image", file);
 
-        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
         const data = await res.json();
 
         if (res.ok && data?.url) {
@@ -133,12 +179,18 @@ export default function ProductForm() {
         if (variantIdx === -1) {
           setProduct((prev) => ({
             ...prev,
-            images: [...prev.images.filter((img) => img.trim().length > 0), ...uploadedUrls],
+            images: [
+              ...prev.images.filter((img) => img.trim().length > 0),
+              ...uploadedUrls,
+            ],
           }));
         } else {
           setProduct((prev) => {
             const newV = [...prev.variants];
-            newV[variantIdx].images = [...newV[variantIdx].images.filter((img) => img.trim().length > 0), ...uploadedUrls];
+            newV[variantIdx].images = [
+              ...newV[variantIdx].images.filter((img) => img.trim().length > 0),
+              ...uploadedUrls,
+            ];
             return { ...prev, variants: newV };
           });
         }
@@ -157,7 +209,16 @@ export default function ProductForm() {
   const addVariant = () => {
     setProduct({
       ...product,
-      variants: [...product.variants, { colorName: "", colorHex: "#ff0000", price: product.price, images: [""] }]
+      variants: [
+        ...product.variants,
+        {
+          colorName: "",
+          shadeName: "",
+          colorHex: "#ff0000",
+          price: product.price,
+          images: [""],
+        },
+      ],
     });
   };
 
@@ -215,7 +276,12 @@ export default function ProductForm() {
               step="0.01"
               className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
               value={product.price}
-              onChange={(e) => setProduct({ ...product, price: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setProduct({
+                  ...product,
+                  price: parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
 
@@ -228,7 +294,12 @@ export default function ProductForm() {
               step="0.01"
               className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
               value={product.originalPrice}
-              onChange={(e) => setProduct({ ...product, originalPrice: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setProduct({
+                  ...product,
+                  originalPrice: parseFloat(e.target.value) || 0,
+                })
+              }
             />
           </div>
 
@@ -239,7 +310,9 @@ export default function ProductForm() {
             <select
               className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
               value={product.category}
-              onChange={(e) => setProduct({ ...product, category: e.target.value })}
+              onChange={(e) =>
+                setProduct({ ...product, category: e.target.value })
+              }
             >
               <option>Skincare</option>
               <option>Makeup</option>
@@ -258,7 +331,9 @@ export default function ProductForm() {
               type="number"
               className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
               value={product.stock}
-              onChange={(e) => setProduct({ ...product, stock: parseInt(e.target.value) || 0 })}
+              onChange={(e) =>
+                setProduct({ ...product, stock: parseInt(e.target.value) || 0 })
+              }
             />
           </div>
 
@@ -271,7 +346,9 @@ export default function ProductForm() {
               placeholder="e.g. SALE, NEW, HOT"
               className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
               value={product.badge}
-              onChange={(e) => setProduct({ ...product, badge: e.target.value })}
+              onChange={(e) =>
+                setProduct({ ...product, badge: e.target.value })
+              }
             />
           </div>
         </div>
@@ -285,7 +362,9 @@ export default function ProductForm() {
             required
             className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
             value={product.description}
-            onChange={(e) => setProduct({ ...product, description: e.target.value })}
+            onChange={(e) =>
+              setProduct({ ...product, description: e.target.value })
+            }
           />
         </div>
 
@@ -307,7 +386,9 @@ export default function ProductForm() {
                 disabled={uploading}
               />
             </label>
-            {uploadError && <p className="text-xs text-red-500">{uploadError}</p>}
+            {uploadError && (
+              <p className="text-xs text-red-500">{uploadError}</p>
+            )}
           </div>
           {product.images.map((img, idx) => (
             <div key={idx} className="flex gap-2">
@@ -320,7 +401,12 @@ export default function ProductForm() {
               />
               <button
                 type="button"
-                onClick={() => setProduct({ ...product, images: product.images.filter((_, i) => i !== idx) })}
+                onClick={() =>
+                  setProduct({
+                    ...product,
+                    images: product.images.filter((_, i) => i !== idx),
+                  })
+                }
                 className="p-3 text-red-500 hover:bg-red-50 rounded-xl"
               >
                 <X size={20} />
@@ -329,7 +415,9 @@ export default function ProductForm() {
           ))}
           <button
             type="button"
-            onClick={() => setProduct({ ...product, images: [...product.images, ""] })}
+            onClick={() =>
+              setProduct({ ...product, images: [...product.images, ""] })
+            }
             className="text-[var(--color-jade-pink)] font-semibold text-sm hover:underline"
           >
             + Add another default image URL
@@ -338,10 +426,31 @@ export default function ProductForm() {
 
         {/* Variants Section */}
         <div className="space-y-4 border-t border-[var(--jade-border)] pt-8">
-          <div className="flex justify-between items-center">
-            <label className="block text-lg font-serif text-[var(--jade-text)]">
-              Product Variants (Colors, Custom Prices & Images)
-            </label>
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <div className="space-y-2">
+              <label className="block text-lg font-serif text-[var(--jade-text)]">
+                Product Variants
+              </label>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                  Variant Mode
+                </label>
+                <select
+                  value={product.variantType}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      variantType: e.target.value as "color" | "shade",
+                    })
+                  }
+                  className="px-3 py-2 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
+                >
+                  <option value="color">Color</option>
+                  <option value="shade">Shade</option>
+                </select>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={addVariant}
@@ -350,44 +459,133 @@ export default function ProductForm() {
               <Plus size={16} /> Add Variant
             </button>
           </div>
-          
+
           {product.variants.length === 0 ? (
-            <p className="text-sm text-[var(--jade-muted)]">No variants added. The default price and images will be used.</p>
+            <p className="text-sm text-[var(--jade-muted)]">
+              No variants added. The default price and images will be used.
+            </p>
           ) : (
             <div className="space-y-6">
               {product.variants.map((variant, vIdx) => (
-                <div key={vIdx} className="p-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-[var(--jade-bg)] space-y-4 relative">
-                  <button type="button" onClick={() => removeVariant(vIdx)} className="absolute top-4 right-4 text-red-400 hover:text-red-600">
+                <div
+                  key={vIdx}
+                  className="p-6 border border-gray-200 dark:border-gray-700 rounded-xl bg-[var(--jade-bg)] space-y-4 relative"
+                >
+                  <button
+                    type="button"
+                    onClick={() => removeVariant(vIdx)}
+                    className="absolute top-4 right-4 text-red-400 hover:text-red-600"
+                  >
                     <X size={20} />
                   </button>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">Color Name</label>
-                      <input type="text" placeholder="e.g. Ruby Red" className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]" value={variant.colorName} onChange={(e) => updateVariant(vIdx, "colorName", e.target.value)} required />
+                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                        {product.variantType === "shade"
+                          ? "Shade Name"
+                          : "Color Name"}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={
+                          product.variantType === "shade"
+                            ? "e.g. 008 2000"
+                            : "e.g. Ruby Red"
+                        }
+                        className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
+                        value={
+                          product.variantType === "shade"
+                            ? variant.shadeName
+                            : variant.colorName
+                        }
+                        onChange={(e) =>
+                          updateVariant(
+                            vIdx,
+                            product.variantType === "shade"
+                              ? "shadeName"
+                              : "colorName",
+                            e.target.value,
+                          )
+                        }
+                        required
+                      />
                     </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">Color Hex</label>
-                      <div className="flex gap-2">
-                        <input type="color" className="w-10 h-10 p-0 border-0 rounded cursor-pointer" value={variant.colorHex} onChange={(e) => updateVariant(vIdx, "colorHex", e.target.value)} />
-                        <input type="text" className="flex-grow px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)] uppercase" value={variant.colorHex} onChange={(e) => updateVariant(vIdx, "colorHex", e.target.value)} />
+                    {product.variantType === "color" ? (
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                          Color Hex
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="color"
+                            className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                            value={variant.colorHex}
+                            onChange={(e) =>
+                              updateVariant(vIdx, "colorHex", e.target.value)
+                            }
+                          />
+                          <input
+                            type="text"
+                            className="flex-grow px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)] uppercase"
+                            value={variant.colorHex}
+                            onChange={(e) =>
+                              updateVariant(vIdx, "colorHex", e.target.value)
+                            }
+                          />
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                          Shade Preview Image
+                        </label>
+                        <p className="text-xs text-[var(--jade-muted)] mt-2">
+                          Add at least one variant image below. The first image
+                          will be used in the shade selector.
+                        </p>
+                      </div>
+                    )}
                     <div>
-                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">Price (Rs)</label>
-                      <input type="number" step="0.01" className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]" value={variant.price} onChange={(e) => updateVariant(vIdx, "price", parseFloat(e.target.value) || 0)} required />
+                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                        Price (Rs)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
+                        value={variant.price}
+                        onChange={(e) =>
+                          updateVariant(
+                            vIdx,
+                            "price",
+                            parseFloat(e.target.value) || 0,
+                          )
+                        }
+                        required
+                      />
                     </div>
                   </div>
-                  
+
                   {/* Variant Images */}
                   <div className="space-y-2 pt-2">
                     <div className="flex items-center gap-4">
-                      <label className="text-xs font-semibold text-[var(--jade-muted)]">Variant Images</label>
+                      <label className="text-xs font-semibold text-[var(--jade-muted)]">
+                        Variant Images
+                      </label>
                       <label className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-jade-pink)] cursor-pointer">
                         <Upload size={14} /> Upload
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleImageUpload(e.target.files, vIdx)} />
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(e) =>
+                            handleImageUpload(e.target.files, vIdx)
+                          }
+                        />
                       </label>
                     </div>
-                    
+
                     {variant.images.map((img, idx) => (
                       <div key={idx} className="flex gap-2">
                         <input
@@ -395,22 +593,34 @@ export default function ProductForm() {
                           placeholder="https://..."
                           className="flex-grow px-3 py-2 text-sm bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
                           value={img}
-                          onChange={(e) => handleImageChange(idx, e.target.value, vIdx)}
+                          onChange={(e) =>
+                            handleImageChange(idx, e.target.value, vIdx)
+                          }
                         />
-                        <button type="button" onClick={() => {
-                          const newVariants = [...product.variants];
-                          newVariants[vIdx].images = newVariants[vIdx].images.filter((_, i) => i !== idx);
-                          setProduct({ ...product, variants: newVariants });
-                        }} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newVariants = [...product.variants];
+                            newVariants[vIdx].images = newVariants[
+                              vIdx
+                            ].images.filter((_, i) => i !== idx);
+                            setProduct({ ...product, variants: newVariants });
+                          }}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
                           <X size={16} />
                         </button>
                       </div>
                     ))}
-                    <button type="button" onClick={() => {
-                       const newVariants = [...product.variants];
-                       newVariants[vIdx].images.push("");
-                       setProduct({ ...product, variants: newVariants });
-                    }} className="text-[var(--color-jade-pink)] text-xs font-semibold hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newVariants = [...product.variants];
+                        newVariants[vIdx].images.push("");
+                        setProduct({ ...product, variants: newVariants });
+                      }}
+                      className="text-[var(--color-jade-pink)] text-xs font-semibold hover:underline"
+                    >
                       + Add Variant Image URL
                     </button>
                   </div>
@@ -428,7 +638,9 @@ export default function ProductForm() {
           <Save size={20} />
           {loading ? "Saving..." : "Save Product Details"}
         </button>
-        {saveError && <p className="text-sm text-red-500 text-center">{saveError}</p>}
+        {saveError && (
+          <p className="text-sm text-red-500 text-center">{saveError}</p>
+        )}
       </form>
     </div>
   );

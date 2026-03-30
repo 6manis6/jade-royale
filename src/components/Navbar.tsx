@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingBag, Menu, X, User, Heart, Search } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Search, LogOut } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useState, useEffect } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import Image from "next/image";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Navbar() {
   const { cartCount, setIsCartOpen } = useCart();
+  const { data: session, status } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -108,6 +110,37 @@ export default function Navbar() {
                 </span>
               )}
             </button>
+
+            {status === "authenticated" ? (
+              <div className="hidden md:flex items-center gap-3">
+                <span className="text-xs text-[var(--jade-muted)] max-w-[140px] truncate">
+                  {session?.user?.name || session?.user?.email}
+                </span>
+                <button
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="inline-flex items-center gap-1 text-[var(--jade-text)] hover:text-[var(--color-jade-pink)]"
+                >
+                  <LogOut size={18} />
+                  <span className="text-sm font-semibold">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-3">
+                <Link
+                  href="/login"
+                  className="text-sm font-semibold text-[var(--jade-text)] hover:text-[var(--color-jade-pink)]"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="text-sm font-semibold bg-[var(--color-jade-pink)] text-white px-3 py-1.5 rounded-lg hover:bg-black transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </div>
+            )}
+
             <button
               className="md:hidden text-[var(--jade-text)] ml-2"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -156,6 +189,34 @@ export default function Navbar() {
           >
             Clothing
           </Link>
+          {status === "authenticated" ? (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                signOut({ callbackUrl: "/" });
+              }}
+              className="text-left text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm inline-flex items-center gap-2"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+              >
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       )}
     </header>

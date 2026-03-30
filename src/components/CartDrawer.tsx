@@ -41,7 +41,7 @@ export default function CartDrawer() {
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
           {cart.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-black space-y-4">
+            <div className="flex flex-col items-center justify-center h-full text-[var(--jade-muted)] space-y-4">
               <ShoppingBag size={48} strokeWidth={1} />
               <p>Your cart is empty</p>
               <button
@@ -72,7 +72,7 @@ export default function CartDrawer() {
                       </h3>
                       <button
                         onClick={() => removeFromCart(item.productId)}
-                        className="text-black hover:text-red-500 transition-colors"
+                        className="text-[var(--jade-muted-strong)] hover:text-red-500 transition-colors"
                       >
                         <X size={16} />
                       </button>
