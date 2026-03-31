@@ -22,6 +22,7 @@ const ProductSchema = new mongoose.Schema(
         shadeImage: { type: String },
         colorHex: { type: String },
         price: { type: Number },
+        stock: { type: Number, default: 0 },
         images: [{ type: String }],
       },
     ],

@@ -27,6 +27,7 @@ export default function ProductForm() {
       shadeImage: string;
       colorHex: string;
       price: number;
+      stock: number;
       images: string[];
     }>,
   });
@@ -48,6 +49,7 @@ export default function ProductForm() {
               shadeImage: v.shadeImage || "",
               colorHex: v.colorHex || "#ff0000",
               price: v.price || data.data.price || 0,
+              stock: typeof v.stock === "number" ? v.stock : 0,
               images: v.images?.length ? v.images : [""],
             }));
 
@@ -86,6 +88,13 @@ export default function ProductForm() {
         images: v.images.filter((img) => img.trim().length > 0),
       })),
     };
+
+    if (payload.variants.length > 0) {
+      payload.stock = payload.variants.reduce(
+        (sum, v) => sum + (Number(v.stock) || 0),
+        0,
+      );
+    }
 
     if (
       payload.images.length === 0 &&
@@ -220,6 +229,7 @@ export default function ProductForm() {
           shadeImage: "",
           colorHex: "#ff0000",
           price: product.price,
+          stock: 0,
           images: [""],
         },
       ],
@@ -365,18 +375,37 @@ export default function ProductForm() {
           </div>
 
           <div className="space-y-4">
-            <label className="block text-sm font-semibold text-[var(--jade-muted-strong)]">
-              Initial Stock *
-            </label>
-            <input
-              required
-              type="number"
-              className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
-              value={product.stock}
-              onChange={(e) =>
-                setProduct({ ...product, stock: parseInt(e.target.value) || 0 })
-              }
-            />
+            {product.variants.length === 0 ? (
+              <>
+                <label className="block text-sm font-semibold text-[var(--jade-muted-strong)]">
+                  Initial Stock *
+                </label>
+                <input
+                  required
+                  type="number"
+                  className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
+                  value={product.stock}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      stock: parseInt(e.target.value) || 0,
+                    })
+                  }
+                />
+              </>
+            ) : (
+              <>
+                <label className="block text-sm font-semibold text-[var(--jade-muted-strong)]">
+                  Total Stock (from variants)
+                </label>
+                <div className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl text-[var(--jade-text)]">
+                  {product.variants.reduce(
+                    (sum, v) => sum + (Number(v.stock) || 0),
+                    0,
+                  )}
+                </div>
+              </>
+            )}
           </div>
 
           <div className="space-y-4 md:col-span-2">
@@ -622,6 +651,24 @@ export default function ProductForm() {
                             vIdx,
                             "price",
                             parseFloat(e.target.value) || 0,
+                          )
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                        Stock
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
+                        value={variant.stock}
+                        onChange={(e) =>
+                          updateVariant(
+                            vIdx,
+                            "stock",
+                            parseInt(e.target.value) || 0,
                           )
                         }
                         required

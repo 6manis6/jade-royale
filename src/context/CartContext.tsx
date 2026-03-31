@@ -15,6 +15,8 @@ export type CartItem = {
   price: number;
   qty: number;
   image: string;
+  stock?: number;
+  variantLabel?: string;
 };
 
 interface CartContextType {
@@ -78,12 +80,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     incoming.forEach((item) => {
       const existing = map.get(item.productId);
       if (existing) {
-        map.set(item.productId, { ...existing, qty: existing.qty + item.qty });
+        map.set(item.productId, {
+          ...existing,
+          qty: existing.qty + item.qty,
+          stock: item.stock ?? existing.stock,
+          variantLabel: item.variantLabel ?? existing.variantLabel,
+        });
       } else {
         map.set(item.productId, { ...item });
       }
     });
-    return Array.from(map.values());
+    return Array.from(map.values()).map((item) => {
+      if (typeof item.stock !== "number") return item;
+      if (item.stock <= 0) return { ...item, qty: 0 };
+      return { ...item, qty: Math.min(item.qty, item.stock) };
+    });
   };
 
   useEffect(() => {
@@ -153,12 +164,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === item.productId);
+      const maxQty = item.stock ?? existing?.stock;
+      if (typeof maxQty === "number" && maxQty <= 0) {
+        return prev;
+      }
       if (existing) {
+        const nextQty = existing.qty + item.qty;
+        const finalQty =
+          typeof maxQty === "number" ? Math.min(nextQty, maxQty) : nextQty;
         return prev.map((i) =>
-          i.productId === item.productId ? { ...i, qty: i.qty + item.qty } : i,
+          i.productId === item.productId
+            ? {
+                ...i,
+                qty: finalQty,
+                stock: maxQty ?? i.stock,
+              }
+            : i,
         );
       }
-      return [...prev, item];
+      const finalQty =
+        typeof maxQty === "number" ? Math.min(item.qty, maxQty) : item.qty;
+      return [...prev, { ...item, qty: finalQty, stock: maxQty }];
     });
     setIsCartOpen(true);
   };
@@ -170,7 +196,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQty = (productId: string, qty: number) => {
     if (qty < 1) return;
     setCart((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, qty } : i)),
+      prev.map((i) => {
+        if (i.productId !== productId) return i;
+        if (typeof i.stock !== "number") return { ...i, qty };
+        return { ...i, qty: Math.min(qty, i.stock) };
+      }),
     );
   };
 

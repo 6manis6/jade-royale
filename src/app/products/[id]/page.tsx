@@ -31,6 +31,7 @@ export default function ProductDetail() {
     colorName?: string;
     shadeImage?: string;
     colorHex?: string;
+    stock?: number;
   };
   type Product = {
     _id: string;
@@ -38,6 +39,7 @@ export default function ProductDetail() {
     category?: string;
     images?: string[];
     price: number;
+    stock: number;
     originalPrice?: number;
     badge?: string;
     description?: string;
@@ -137,6 +139,36 @@ export default function ProductDetail() {
       .catch((err) => console.error("Failed to fetch suggested products", err));
   }, [id]);
 
+  const variants = product?.variants || [];
+  const variantMode: "color" | "shade" =
+    product?.variantType ||
+    (variants.some((v) => Boolean(v.shadeName)) ? "shade" : "color");
+
+  const currentVariant =
+    selectedVariantIdx !== null ? variants[selectedVariantIdx] : null;
+  const displayImages =
+    currentVariant?.images && currentVariant.images.length > 0
+      ? currentVariant.images
+      : product?.images || [];
+  const displayPrice = currentVariant?.price ?? product?.price ?? 0;
+  const originalPrice = product?.originalPrice ?? 0;
+  const availableStock =
+    typeof currentVariant?.stock === "number"
+      ? currentVariant.stock
+      : (product?.stock ?? 0);
+  const isAtStockLimit = availableStock > 0 && qty >= availableStock;
+  const isOutOfStock = availableStock <= 0;
+  const discountPercent =
+    originalPrice > displayPrice
+      ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
+      : 0;
+
+  useEffect(() => {
+    if (availableStock > 0) {
+      setQty((prev) => Math.min(prev, availableStock));
+    }
+  }, [availableStock]);
+
   if (loading)
     return (
       <div className="min-h-[80vh] flex items-center justify-center font-serif text-2xl text-jade-pink animate-pulse bg-(--jade-bg)">
@@ -149,24 +181,6 @@ export default function ProductDetail() {
         Product not found.
       </div>
     );
-
-  const variants = product.variants || [];
-  const variantMode: "color" | "shade" =
-    product.variantType ||
-    (variants.some((v) => Boolean(v.shadeName)) ? "shade" : "color");
-
-  const currentVariant =
-    selectedVariantIdx !== null ? variants[selectedVariantIdx] : null;
-  const displayImages =
-    currentVariant?.images && currentVariant.images.length > 0
-      ? currentVariant.images
-      : product.images || [];
-  const displayPrice = currentVariant ? currentVariant.price : product.price;
-  const originalPrice = product.originalPrice ?? 0;
-  const discountPercent =
-    originalPrice > displayPrice
-      ? Math.round(((originalPrice - displayPrice) / originalPrice) * 100)
-      : 0;
 
   const handleAddToCart = () => {
     const selectedVariantLabel =
@@ -192,6 +206,8 @@ export default function ProductDetail() {
       price: displayPrice,
       qty: qty,
       image: finalImage,
+      stock: availableStock,
+      variantLabel: selectedVariantLabel || undefined,
     });
   };
 
@@ -573,11 +589,25 @@ export default function ProductDetail() {
                   {qty}
                 </span>
                 <button
-                  onClick={() => setQty((q) => q + 1)}
-                  className="px-5 text-(--jade-text) hover:text-jade-pink transition-colors h-full"
+                  onClick={() =>
+                    setQty((q) =>
+                      availableStock > 0
+                        ? Math.min(q + 1, availableStock)
+                        : q + 1,
+                    )
+                  }
+                  disabled={isAtStockLimit || isOutOfStock}
+                  className={`px-5 text-(--jade-text) transition-colors h-full ${
+                    isAtStockLimit || isOutOfStock
+                      ? "opacity-40 cursor-not-allowed"
+                      : "hover:text-jade-pink"
+                  }`}
                 >
                   <Plus size={18} />
                 </button>
+              </div>
+              <div className="text-sm text-(--jade-muted)">
+                {isOutOfStock ? "Out of stock" : `Stock: ${availableStock}`}
               </div>
               <button
                 onClick={toggleWishlist}

@@ -12,6 +12,12 @@ interface Product {
   category: string;
   stock: number;
   badge?: string;
+  variantType?: "color" | "shade";
+  variants?: Array<{
+    colorName?: string;
+    shadeName?: string;
+    stock?: number;
+  }>;
 }
 
 export default function AdminProducts() {
@@ -170,23 +176,49 @@ export default function AdminProducts() {
                     {formatPrice(product.price)}
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Package
-                        size={14}
-                        className={
-                          product.stock < 10 ? "text-red-500" : "text-green-500"
-                        }
-                      />
-                      <span
-                        className={
-                          product.stock < 10
-                            ? "text-red-600 dark:text-red-400 font-bold"
-                            : "text-[var(--jade-text)] font-medium"
-                        }
-                      >
-                        {product.stock} units
-                      </span>
-                    </div>
+                    {product.variants?.length ? (
+                      <div className="space-y-1">
+                        <p className="text-xs uppercase tracking-wider text-[var(--jade-muted)] font-semibold">
+                          {product.variantType === "shade"
+                            ? "Shades"
+                            : "Colors"}
+                        </p>
+                        <div className="text-xs text-[var(--jade-text)] space-y-0.5">
+                          {product.variants.slice(0, 4).map((variant, idx) => (
+                            <div key={idx}>
+                              {(variant.shadeName || variant.colorName) ??
+                                "Variant"}
+                              : {variant.stock ?? 0}
+                            </div>
+                          ))}
+                          {product.variants.length > 4 && (
+                            <div className="text-[var(--jade-muted)]">
+                              +{product.variants.length - 4} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Package
+                          size={14}
+                          className={
+                            product.stock < 10
+                              ? "text-red-500"
+                              : "text-green-500"
+                          }
+                        />
+                        <span
+                          className={
+                            product.stock < 10
+                              ? "text-red-600 dark:text-red-400 font-bold"
+                              : "text-[var(--jade-text)] font-medium"
+                          }
+                        >
+                          {product.stock} units
+                        </span>
+                      </div>
+                    )}
                   </td>
 
                   <td className="px-6 py-4">

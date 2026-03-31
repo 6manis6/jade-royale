@@ -161,21 +161,12 @@ export default function Footer() {
                 </span>
               </li>
               <li className="flex items-center">
-                <Phone
-                  size={18}
-                  className="text-[var(--color-jade-pink)] mr-3 flex-shrink-0"
-                />
-                <span className="text-[var(--jade-muted)] text-sm font-sans font-bold">
-                  +977 9800000000
-                </span>
-              </li>
-              <li className="flex items-center">
                 <Mail
                   size={18}
                   className="text-[var(--color-jade-pink)] mr-3 flex-shrink-0"
                 />
                 <span className="text-[var(--jade-muted)] text-sm font-sans font-bold">
-                  hello@jaderoyale.com
+                  mail@jaderoyale.com.np
                 </span>
               </li>
             </ul>

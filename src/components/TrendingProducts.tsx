@@ -11,6 +11,13 @@ interface Product {
   category: string;
   images: string[];
   badge?: string;
+  stock: number;
+  variantType?: "color" | "shade";
+  variants?: Array<{
+    colorName?: string;
+    shadeName?: string;
+    stock?: number;
+  }>;
 }
 
 export default function TrendingProducts() {
