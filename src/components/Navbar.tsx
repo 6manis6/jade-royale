@@ -9,7 +9,7 @@ import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 
 export default function Navbar() {
-  const { cartCount, setIsCartOpen, clearCart } = useCart();
+  const { cartCount, setIsCartOpen } = useCart();
   const { data: session, status } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -113,13 +113,15 @@ export default function Navbar() {
 
             {status === "authenticated" ? (
               <div className="hidden md:flex items-center gap-3">
-                <Link href="/profile" className="text-xs font-medium text-[var(--jade-text)] max-w-[140px] truncate hover:text-[var(--color-jade-pink)] transition-colors flex items-center gap-1">
+                <Link
+                  href="/profile"
+                  className="text-xs font-medium text-[var(--jade-text)] max-w-[140px] truncate hover:text-[var(--color-jade-pink)] transition-colors flex items-center gap-1"
+                >
                   <User size={16} />
                   {session?.user?.name || session?.user?.email}
                 </Link>
                 <button
                   onClick={() => {
-                    clearCart();
                     signOut({ callbackUrl: "/" });
                   }}
                   className="inline-flex items-center gap-1 text-[var(--jade-text)] hover:text-[var(--color-jade-pink)]"
@@ -205,7 +207,6 @@ export default function Navbar() {
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  clearCart();
                   signOut({ callbackUrl: "/" });
                 }}
                 className="text-left text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm inline-flex items-center gap-2"

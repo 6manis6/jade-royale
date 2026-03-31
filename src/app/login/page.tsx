@@ -2,12 +2,14 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
   const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +17,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   if (status === "authenticated") {
-    router.push("/");
+    router.push(callbackUrl);
   }
 
   const handleLogin = async (e: FormEvent) => {
@@ -36,7 +38,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
+    router.push(callbackUrl);
   };
 
   return (
@@ -91,7 +93,7 @@ export default function LoginPage() {
         </form>
 
         <button
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={() => signIn("google", { callbackUrl })}
           className="w-full mt-4 bg-white text-black border border-gray-300 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
         >
           Continue with Google

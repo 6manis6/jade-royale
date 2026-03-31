@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
 import { CheckCircle, Truck, Wallet, Info } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { useSession } from "next-auth/react";
 
 export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart();
   const router = useRouter();
-
+  const { status } = useSession();
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -19,6 +20,24 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "esewa">("cod");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login?callbackUrl=/checkout");
+    }
+  }, [router, status]);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center bg-[var(--jade-bg)] text-[var(--jade-text)]">
+        Loading...
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return null;
+  }
 
   if (cart.length === 0) {
     return (

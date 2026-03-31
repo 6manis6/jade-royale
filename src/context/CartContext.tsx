@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { useSession } from "next-auth/react";
 
 export type CartItem = {
   productId: string;
@@ -27,30 +34,128 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { status } = useSession();
 
-  // Load from local storage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('jadeCart');
-    if (saved) {
-      try {
-        setCart(JSON.parse(saved));
-      } catch (e) {
-        console.error("Failed to parse cart", e);
+  const guestCartKey = "jadeCartGuest";
+  const legacyGuestKey = "jadeCart";
+
+  const readGuestCart = () => {
+    if (typeof window === "undefined") return [] as CartItem[];
+    const saved = localStorage.getItem(guestCartKey);
+    const legacySaved = saved ? null : localStorage.getItem(legacyGuestKey);
+    const payload = saved ?? legacySaved;
+    if (!payload) return [] as CartItem[];
+    try {
+      const parsed = JSON.parse(payload) as CartItem[];
+      if (legacySaved && parsed.length > 0) {
+        localStorage.setItem(guestCartKey, JSON.stringify(parsed));
+        localStorage.removeItem(legacyGuestKey);
       }
+      return parsed;
+    } catch (e) {
+      console.error("Failed to parse guest cart", e);
+      return [] as CartItem[];
     }
-  }, []);
+  };
 
-  // Save to local storage on change
+  const writeGuestCart = (items: CartItem[]) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(guestCartKey, JSON.stringify(items));
+    localStorage.removeItem(legacyGuestKey);
+  };
+
+  const clearGuestCart = () => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(guestCartKey);
+    localStorage.removeItem(legacyGuestKey);
+  };
+
+  const mergeCarts = (base: CartItem[], incoming: CartItem[]) => {
+    const map = new Map<string, CartItem>();
+    base.forEach((item) => map.set(item.productId, { ...item }));
+    incoming.forEach((item) => {
+      const existing = map.get(item.productId);
+      if (existing) {
+        map.set(item.productId, { ...existing, qty: existing.qty + item.qty });
+      } else {
+        map.set(item.productId, { ...item });
+      }
+    });
+    return Array.from(map.values());
+  };
+
   useEffect(() => {
-    localStorage.setItem('jadeCart', JSON.stringify(cart));
-  }, [cart]);
+    const syncAuthenticatedCart = async () => {
+      setIsSyncing(true);
+      const guestCart = readGuestCart();
+
+      try {
+        const response = await fetch("/api/cart");
+        const data = await response.json();
+        const serverCart = Array.isArray(data?.data?.items)
+          ? (data.data.items as CartItem[])
+          : [];
+        const merged = mergeCarts(serverCart, guestCart);
+        setCart(merged);
+        setHasLoaded(true);
+
+        await fetch("/api/cart", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: merged }),
+        });
+
+        if (guestCart.length > 0) {
+          clearGuestCart();
+        }
+      } catch (e) {
+        console.error("Failed to sync cart", e);
+        if (guestCart.length > 0) {
+          setCart(guestCart);
+        }
+        setHasLoaded(true);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    if (status === "authenticated") {
+      syncAuthenticatedCart();
+      return;
+    }
+
+    if (status === "unauthenticated") {
+      setCart(readGuestCart());
+      setHasLoaded(true);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (!hasLoaded) return;
+
+    if (status === "authenticated") {
+      if (isSyncing) return;
+      void fetch("/api/cart", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: cart }),
+      });
+      return;
+    }
+
+    if (status === "unauthenticated") {
+      writeGuestCart(cart);
+    }
+  }, [cart, hasLoaded, isSyncing, status]);
 
   const addToCart = (item: CartItem) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === item.productId);
       if (existing) {
         return prev.map((i) =>
-          i.productId === item.productId ? { ...i, qty: i.qty + item.qty } : i
+          i.productId === item.productId ? { ...i, qty: i.qty + item.qty } : i,
         );
       }
       return [...prev, item];
@@ -65,7 +170,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQty = (productId: string, qty: number) => {
     if (qty < 1) return;
     setCart((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, qty } : i))
+      prev.map((i) => (i.productId === productId ? { ...i, qty } : i)),
     );
   };
 
@@ -73,7 +178,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart([]);
   };
 
-  const cartTotal = cart.reduce((total, item) => total + item.price * item.qty, 0);
+  const cartTotal = cart.reduce(
+    (total, item) => total + item.price * item.qty,
+    0,
+  );
   const cartCount = cart.reduce((count, item) => count + item.qty, 0);
 
   return (
@@ -98,7 +206,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 export function useCart() {
   const context = useContext(CartContext);
   if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error("useCart must be used within a CartProvider");
   }
   return context;
 }
