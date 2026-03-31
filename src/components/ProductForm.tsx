@@ -629,11 +629,16 @@ export default function ProductForm() {
                               className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
                               value={variant.shadeImage}
                               onChange={(e) =>
-                                updateVariant(vIdx, "shadeImage", e.target.value)
+                                updateVariant(
+                                  vIdx,
+                                  "shadeImage",
+                                  e.target.value,
+                                )
                               }
                             />
                             <p className="text-xs text-[var(--jade-muted)]">
-                              This image is only for the shade selector thumbnail.
+                              This image is only for the shade selector
+                              thumbnail.
                             </p>
                           </div>
                         </div>
