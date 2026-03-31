@@ -606,34 +606,60 @@ export default function ProductForm() {
                         </div>
                       </div>
                     ) : (
-                      <div>
-                        <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
-                          Shade Preview Image
-                        </label>
-                        <div className="space-y-2">
-                          <label className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-jade-pink)] cursor-pointer">
-                            <Upload size={14} /> Upload
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                            Shade Preview Image
+                          </label>
+                          <div className="space-y-2">
+                            <label className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-jade-pink)] cursor-pointer">
+                              <Upload size={14} /> Upload
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) =>
+                                  handleShadeImageUpload(e.target.files, vIdx)
+                                }
+                              />
+                            </label>
                             <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
+                              type="text"
+                              placeholder="https://..."
+                              className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
+                              value={variant.shadeImage}
                               onChange={(e) =>
-                                handleShadeImageUpload(e.target.files, vIdx)
+                                updateVariant(vIdx, "shadeImage", e.target.value)
                               }
                             />
+                            <p className="text-xs text-[var(--jade-muted)]">
+                              This image is only for the shade selector thumbnail.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                            Shade Color
                           </label>
-                          <input
-                            type="text"
-                            placeholder="https://..."
-                            className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
-                            value={variant.shadeImage}
-                            onChange={(e) =>
-                              updateVariant(vIdx, "shadeImage", e.target.value)
-                            }
-                          />
-                          <p className="text-xs text-[var(--jade-muted)]">
-                            This image is only for the shade selector thumbnail.
-                          </p>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                              value={variant.colorHex}
+                              onChange={(e) =>
+                                updateVariant(vIdx, "colorHex", e.target.value)
+                              }
+                            />
+                            <input
+                              type="text"
+                              className="flex-grow px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)] uppercase"
+                              value={variant.colorHex}
+                              onChange={(e) =>
+                                updateVariant(vIdx, "colorHex", e.target.value)
+                              }
+                            />
+                          </div>
                         </div>
                       </div>
                     )}
