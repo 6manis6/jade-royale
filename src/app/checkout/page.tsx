@@ -29,7 +29,7 @@ export default function CheckoutPage() {
 
   if (status === "loading") {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[var(--jade-bg)] text-[var(--jade-text)]">
+      <div className="min-h-[60vh] flex items-center justify-center bg-(--jade-bg) text-(--jade-text)">
         Loading...
       </div>
     );
@@ -41,11 +41,11 @@ export default function CheckoutPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center bg-[var(--jade-bg)]">
-        <h1 className="font-serif text-3xl mb-4 text-[var(--jade-text)]">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center bg-(--jade-bg)">
+        <h1 className="font-serif text-3xl mb-4 text-(--jade-text)">
           Your cart is empty
         </h1>
-        <p className="text-[var(--jade-muted)] mb-8">
+        <p className="text-(--jade-muted) mb-8">
           Please add products to your cart before proceeding to checkout.
         </p>
         <button onClick={() => router.push("/shop")} className="btn-primary">
@@ -65,6 +65,45 @@ export default function CheckoutPage() {
     setError("");
 
     try {
+      if (paymentMethod === "esewa") {
+        const response = await fetch("/api/esewa/init", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            items: cart,
+            customer: formData,
+            totalAmount: cartTotal,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          setError(data.error || "Failed to initiate eSewa payment");
+          setLoading(false);
+          return;
+        }
+
+        const { formUrl, payload } = data.data;
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = formUrl;
+
+        Object.entries(payload).forEach(([key, value]) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = String(value);
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
+
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: {
@@ -94,10 +133,8 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 md:px-8 py-12 md:py-16 bg-[var(--jade-bg)]">
-      <h1 className="font-serif text-4xl text-[var(--jade-text)] mb-10">
-        Checkout
-      </h1>
+    <div className="container mx-auto px-4 md:px-8 py-12 md:py-16 bg-(--jade-bg)">
+      <h1 className="font-serif text-4xl text-(--jade-text) mb-10">Checkout</h1>
 
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-md mb-8 flex items-center gap-3 border border-red-100 dark:border-red-900/30">
@@ -110,14 +147,14 @@ export default function CheckoutPage() {
         <div className="flex-1 order-2 lg:order-1">
           <form onSubmit={handlePlaceOrder} className="space-y-10">
             {/* Shipping Info */}
-            <div className="bg-[var(--jade-card)] p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-              <h2 className="font-serif text-2xl mb-6 text-[var(--jade-text)]">
+            <div className="bg-(--jade-card) p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+              <h2 className="font-serif text-2xl mb-6 text-(--jade-text)">
                 Delivery Information
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium text-[var(--jade-text)]">
+                  <label className="text-sm font-medium text-(--jade-text)">
                     Full Name *
                   </label>
                   <input
@@ -126,11 +163,11 @@ export default function CheckoutPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full bg-[var(--jade-bg)] border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] focus:border-[var(--color-jade-pink)] transition-all text-[var(--jade-text)]"
+                    className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-jade-pink focus:border-jade-pink transition-all text-(--jade-text)"
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
-                  <label className="text-sm font-medium text-[var(--jade-text)]">
+                  <label className="text-sm font-medium text-(--jade-text)">
                     Phone Number *
                   </label>
                   <input
@@ -139,11 +176,11 @@ export default function CheckoutPage() {
                     required
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full bg-[var(--jade-bg)] border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] focus:border-[var(--color-jade-pink)] transition-all text-[var(--jade-text)]"
+                    className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-jade-pink focus:border-jade-pink transition-all text-(--jade-text)"
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
-                  <label className="text-sm font-medium text-[var(--jade-text)]">
+                  <label className="text-sm font-medium text-(--jade-text)">
                     City / District *
                   </label>
                   <input
@@ -152,11 +189,11 @@ export default function CheckoutPage() {
                     required
                     value={formData.city}
                     onChange={handleChange}
-                    className="w-full bg-[var(--jade-bg)] border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] focus:border-[var(--color-jade-pink)] transition-all text-[var(--jade-text)]"
+                    className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-jade-pink focus:border-jade-pink transition-all text-(--jade-text)"
                   />
                 </div>
                 <div className="space-y-2 col-span-1 md:col-span-2">
-                  <label className="text-sm font-medium text-[var(--jade-text)]">
+                  <label className="text-sm font-medium text-(--jade-text)">
                     Detailed Address (House No, Street) *
                   </label>
                   <input
@@ -165,21 +202,21 @@ export default function CheckoutPage() {
                     required
                     value={formData.address}
                     onChange={handleChange}
-                    className="w-full bg-[var(--jade-bg)] border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] focus:border-[var(--color-jade-pink)] transition-all text-[var(--jade-text)]"
+                    className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-jade-pink focus:border-jade-pink transition-all text-(--jade-text)"
                   />
                 </div>
               </div>
             </div>
 
             {/* Payment Method */}
-            <div className="bg-[var(--jade-card)] p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
-              <h2 className="font-serif text-2xl mb-6 text-[var(--jade-text)]">
+            <div className="bg-(--jade-card) p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+              <h2 className="font-serif text-2xl mb-6 text-(--jade-text)">
                 Payment Method
               </h2>
 
               <div className="space-y-4">
                 <label
-                  className={`block border ${paymentMethod === "cod" ? "border-[var(--color-jade-pink)] bg-pink-50/30 dark:bg-pink-900/10" : "border-gray-200 dark:border-gray-800"} rounded-lg p-5 cursor-pointer transition-colors relative`}
+                  className={`block border ${paymentMethod === "cod" ? "border-jade-pink bg-pink-50/30 dark:bg-pink-900/10" : "border-gray-200 dark:border-gray-800"} rounded-lg p-5 cursor-pointer transition-colors relative`}
                 >
                   <div className="flex items-center gap-4">
                     <input
@@ -188,27 +225,27 @@ export default function CheckoutPage() {
                       value="cod"
                       checked={paymentMethod === "cod"}
                       onChange={() => setPaymentMethod("cod")}
-                      className="text-[var(--color-jade-pink)] focus:ring-[var(--color-jade-pink)] w-5 h-5"
+                      className="text-jade-pink focus:ring-jade-pink w-5 h-5"
                     />
                     <Truck
                       className={
                         paymentMethod === "cod"
-                          ? "text-[var(--color-jade-pink)]"
-                          : "text-[var(--jade-muted-strong)]"
+                          ? "text-jade-pink"
+                          : "text-(--jade-muted-strong)"
                       }
                       size={24}
                     />
                     <div>
-                      <h3 className="font-semibold text-[var(--jade-text)]">
+                      <h3 className="font-semibold text-(--jade-text)">
                         Cash on Delivery (COD)
                       </h3>
-                      <p className="text-sm text-[var(--jade-muted)] mt-1">
+                      <p className="text-sm text-(--jade-muted) mt-1">
                         Pay when you receive the product at your doorstep.
                       </p>
                     </div>
                   </div>
                   {paymentMethod === "cod" && (
-                    <div className="absolute top-1/2 right-6 -translate-y-1/2 text-[var(--color-jade-pink)]">
+                    <div className="absolute top-1/2 right-6 -translate-y-1/2 text-jade-pink">
                       <CheckCircle size={20} />
                     </div>
                   )}
@@ -230,15 +267,15 @@ export default function CheckoutPage() {
                       className={
                         paymentMethod === "esewa"
                           ? "text-green-600"
-                          : "text-[var(--jade-muted-strong)]"
+                          : "text-(--jade-muted-strong)"
                       }
                       size={24}
                     />
                     <div>
-                      <h3 className="font-semibold text-[var(--jade-text)]">
+                      <h3 className="font-semibold text-(--jade-text)">
                         Pay via eSewa
                       </h3>
-                      <p className="text-sm text-[var(--jade-muted)] mt-1">
+                      <p className="text-sm text-(--jade-muted) mt-1">
                         Send payment securely using your eSewa mobile wallet.
                       </p>
                     </div>
@@ -274,7 +311,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full text-center py-4 font-semibold uppercase tracking-widest transition-all ${loading ? "bg-gray-300 text-black cursor-not-allowed" : "bg-[var(--color-jade-pink)] text-white hover:bg-black shadow-lg shadow-[var(--color-jade-pink)]/30"}`}
+              className={`w-full text-center py-4 font-semibold uppercase tracking-widest transition-all ${loading ? "bg-gray-300 text-black cursor-not-allowed" : "bg-jade-pink text-white hover:bg-black shadow-lg shadow-(--color-jade-pink)/30"}`}
             >
               {loading ? "Processing Order..." : "Place Order Now"}
             </button>
@@ -282,16 +319,16 @@ export default function CheckoutPage() {
         </div>
 
         {/* Order Summary sidebar */}
-        <div className="w-full lg:w-[450px] shrink-0 order-1 lg:order-2">
-          <div className="bg-[var(--jade-card)] p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm sticky top-24">
-            <h2 className="font-serif text-2xl mb-6 border-b border-gray-200 dark:border-gray-800 pb-4 text-[var(--jade-text)]">
+        <div className="w-full lg:w-112.5 shrink-0 order-1 lg:order-2">
+          <div className="bg-(--jade-card) p-8 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm sticky top-24">
+            <h2 className="font-serif text-2xl mb-6 border-b border-gray-200 dark:border-gray-800 pb-4 text-(--jade-text)">
               Order Summary
             </h2>
 
             <div className="space-y-6 mb-8 max-h-[40vh] overflow-y-auto pr-2">
               {cart.map((item) => (
                 <div key={item.productId} className="flex gap-4 items-center">
-                  <div className="relative w-16 h-20 bg-[var(--jade-bg)] border border-gray-200 dark:border-gray-700 rounded overflow-hidden flex-shrink-0">
+                  <div className="relative w-16 h-20 bg-(--jade-bg) border border-gray-200 dark:border-gray-700 rounded overflow-hidden shrink-0">
                     <img
                       src={item.image}
                       alt={item.name}
@@ -302,35 +339,35 @@ export default function CheckoutPage() {
                     </span>
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-[var(--jade-text)] text-sm">
+                    <h4 className="font-medium text-(--jade-text) text-sm">
                       {item.name}
                     </h4>
                   </div>
-                  <div className="text-sm font-medium text-[var(--jade-muted)]">
+                  <div className="text-sm font-medium text-(--jade-muted)">
                     {formatPrice(item.price * item.qty)}
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-between items-center mb-4 text-[var(--jade-muted)] text-sm">
+            <div className="flex justify-between items-center mb-4 text-(--jade-muted) text-sm">
               <span>Subtotal</span>
-              <span className="font-medium text-[var(--jade-text)]">
+              <span className="font-medium text-(--jade-text)">
                 {formatPrice(cartTotal)}
               </span>
             </div>
-            <div className="flex justify-between items-center mb-6 text-[var(--jade-muted)] text-sm">
+            <div className="flex justify-between items-center mb-6 text-(--jade-muted) text-sm">
               <span>Shipping</span>
               <span className="text-green-600 font-bold">Free</span>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-6 flex justify-between items-end">
-              <span className="font-medium uppercase tracking-widest text-sm text-[var(--jade-text)]">
+              <span className="font-medium uppercase tracking-widest text-sm text-(--jade-text)">
                 Total
               </span>
               <div className="text-right">
-                <p className="text-xs text-[var(--jade-muted)] mb-1">NPR</p>
-                <span className="font-serif text-3xl font-semibold text-[var(--color-jade-pink)]">
+                <p className="text-xs text-(--jade-muted) mb-1">NPR</p>
+                <span className="font-serif text-3xl font-semibold text-jade-pink">
                   {formatPrice(cartTotal)}
                 </span>
               </div>

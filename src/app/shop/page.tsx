@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import ProductCard from "@/components/ProductCard";
+import ShopBanners from "@/components/ShopBanners";
 
 interface Product {
   _id: string;
@@ -99,6 +100,8 @@ function ShopContent() {
           </button>
         ))}
       </div>
+
+      <ShopBanners activeCategory={activeCategory} />
 
       {/* Product Grid */}
       {loading ? (
