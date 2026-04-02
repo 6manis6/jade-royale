@@ -1,28 +1,24 @@
-import { Suspense } from "react";
+"use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
-import FailureContent from "./FailureContent";
+type FailureContentProps = {
+  reason: string | null;
+};
 
-export default function EsewaFailurePage() {
-  return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-12">
-      <Suspense fallback={<FailureFallback />}>
-        <FailureContent reason={null} />
-      </Suspense>
-    </div>
-  );
-}
+export default function FailureContent({ reason }: FailureContentProps) {
+  const searchParams = useSearchParams();
+  const message = reason ?? searchParams.get("reason");
 
-function FailureFallback() {
   return (
     <div className="bg-(--jade-card) border border-gray-100 dark:border-gray-800 rounded-2xl p-8 max-w-xl w-full text-center">
       <h1 className="font-serif text-3xl text-(--jade-text) mb-3">
         Payment Not Completed
       </h1>
       <p className="text-(--jade-muted) mb-6">
-        Your eSewa payment was not completed. Please try again or choose another
-        method.
+        {message ||
+          "Your eSewa payment was not completed. Please try again or choose another method."}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 justify-center">
         <Link href="/checkout" className="btn-primary">
