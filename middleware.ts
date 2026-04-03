@@ -22,7 +22,8 @@ export function middleware(request: NextRequest) {
   const isProtectedAdminApi =
     pathname.startsWith("/api/upload") ||
     pathname.startsWith("/api/settings") ||
-    (pathname.startsWith("/api/products") && request.method !== "GET");
+    (pathname.startsWith("/api/products") && request.method !== "GET") ||
+    (pathname.startsWith("/api/orders") && request.method !== "GET");
 
   if (!isAdminPage && !isProtectedAdminApi) {
     return NextResponse.next();
@@ -59,5 +60,6 @@ export const config = {
     "/api/upload",
     "/api/settings",
     "/api/products/:path*",
+    "/api/orders/:path*",
   ],
 };

@@ -125,6 +125,13 @@ export default function AdminLayout({
             <span className={`${!isSidebarOpen && "hidden"}`}>Products</span>
           </Link>
           <Link
+            href="/admin/orders"
+            className={`${navLinkBase} ${isActive("/admin/orders") ? navLinkActive : navLinkIdle}`}
+          >
+            <Package size={20} />
+            <span className={`${!isSidebarOpen && "hidden"}`}>Orders</span>
+          </Link>
+          <Link
             href="/admin/settings"
             className={`${navLinkBase} ${isActive("/admin/settings") ? navLinkActive : navLinkIdle}`}
           >
