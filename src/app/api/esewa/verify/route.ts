@@ -121,10 +121,10 @@ export async function GET(request: Request) {
             totalAmount: order.totalAmount,
             items: (order.items || []).map(
               (item: { name?: unknown; qty?: unknown; price?: unknown }) => ({
-              name: String(item.name || ""),
-              qty: Number(item.qty || 0),
-              price: Number(item.price || 0),
-            }),
+                name: String(item.name || ""),
+                qty: Number(item.qty || 0),
+                price: Number(item.price || 0),
+              }),
             ),
           });
         }
