@@ -11,6 +11,8 @@ export default function CheckoutPage() {
   const { cart, cartTotal, clearCart } = useCart();
   const router = useRouter();
   const { status } = useSession();
+  const shippingFee = 180;
+  const totalWithShipping = cartTotal + shippingFee;
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -74,7 +76,7 @@ export default function CheckoutPage() {
           body: JSON.stringify({
             items: cart,
             customer: formData,
-            totalAmount: cartTotal,
+            totalAmount: totalWithShipping,
           }),
         });
 
@@ -113,7 +115,7 @@ export default function CheckoutPage() {
           items: cart,
           customer: formData,
           paymentMethod,
-          totalAmount: cartTotal,
+          totalAmount: totalWithShipping,
         }),
       });
 
@@ -358,7 +360,7 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between items-center mb-6 text-(--jade-muted) text-sm">
               <span>Shipping</span>
-              <span className="text-green-600 font-bold">Free</span>
+              <span className="text-(--jade-text)">{formatPrice(shippingFee)}</span>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-6 flex justify-between items-end">
@@ -368,7 +370,7 @@ export default function CheckoutPage() {
               <div className="text-right">
                 <p className="text-xs text-(--jade-muted) mb-1">NPR</p>
                 <span className="font-serif text-3xl font-semibold text-jade-pink">
-                  {formatPrice(cartTotal)}
+                  {formatPrice(totalWithShipping)}
                 </span>
               </div>
             </div>

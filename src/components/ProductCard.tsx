@@ -124,7 +124,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.name}
         </h3>
         <div className="flex items-center justify-center gap-2">
-          {product.originalPrice && (
+          {product.originalPrice && product.originalPrice > product.price && (
             <span className="text-(--jade-muted) line-through text-sm font-medium opacity-60">
               {formatPrice(product.originalPrice)}
             </span>
