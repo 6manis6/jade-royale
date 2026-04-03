@@ -360,7 +360,9 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between items-center mb-6 text-(--jade-muted) text-sm">
               <span>Shipping</span>
-              <span className="text-(--jade-text)">{formatPrice(shippingFee)}</span>
+              <span className="text-(--jade-text)">
+                {formatPrice(shippingFee)}
+              </span>
             </div>
 
             <div className="border-t border-gray-200 dark:border-gray-800 pt-6 flex justify-between items-end">
