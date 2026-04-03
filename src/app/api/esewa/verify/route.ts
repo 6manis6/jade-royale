@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createHmac } from "crypto";
 import connectToDatabase from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
+import User from "@/lib/models/User";
+import { sendOrderEmails } from "@/lib/email";
 
 const buildSignatureMessage = (
   signedFieldNames: string,
@@ -103,6 +105,32 @@ export async function GET(request: Request) {
         { success: false, error: "Order not found" },
         { status: 404 },
       );
+    }
+
+    if (order.userId) {
+      try {
+        const user = await User.findById(order.userId);
+        if (user?.email) {
+          await sendOrderEmails({
+            orderId: order._id.toString(),
+            customerName: order.customer?.name || user.name || "",
+            customerEmail: user.email,
+            phone: order.customer?.phone || user.phone || "",
+            address: order.customer?.address || "",
+            city: order.customer?.city || "",
+            totalAmount: order.totalAmount,
+            items: (order.items || []).map(
+              (item: { name?: unknown; qty?: unknown; price?: unknown }) => ({
+              name: String(item.name || ""),
+              qty: Number(item.qty || 0),
+              price: Number(item.price || 0),
+            }),
+            ),
+          });
+        }
+      } catch (emailError) {
+        console.error("Order email failed", emailError);
+      }
     }
 
     return NextResponse.json({

@@ -4,6 +4,7 @@ import Order from "@/lib/models/Order";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import User from "@/lib/models/User";
+import { sendOrderEmails } from "@/lib/email";
 
 export async function GET(request: Request) {
   try {
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
     const status = searchParams.get("status");
     const limit = searchParams.get("limit");
 
-    const query: any = {};
+    const query: Record<string, string> = {};
     if (status) {
       query.status = status;
     }
@@ -29,9 +30,12 @@ export async function GET(request: Request) {
       count: orders.length,
       data: orders,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "Failed to load orders",
+      },
       { status: 500 },
     );
   }
@@ -40,7 +44,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await connectToDatabase();
-    
+
     const session = await getServerSession(authOptions);
     let userId = null;
     if (session?.user?.email) {
@@ -64,7 +68,8 @@ export async function POST(request: Request) {
       !body.customer ||
       !body.customer.name ||
       !body.customer.phone ||
-      !body.customer.address
+      !body.customer.address ||
+      !body.customer.city
     ) {
       return NextResponse.json(
         { success: false, error: "Incomplete customer information" },
@@ -79,12 +84,37 @@ export async function POST(request: Request) {
 
     const order = await Order.create(orderData);
 
+    if (session?.user?.email) {
+      try {
+        await sendOrderEmails({
+          orderId: order._id.toString(),
+          customerName: body.customer.name,
+          customerEmail: session.user.email,
+          phone: body.customer.phone,
+          address: body.customer.address,
+          city: body.customer.city,
+          totalAmount: order.totalAmount,
+          items: (body.items || []).map((item: any) => ({
+            name: String(item.name || ""),
+            qty: Number(item.qty || 0),
+            price: Number(item.price || 0),
+          })),
+        });
+      } catch (emailError) {
+        console.error("Order email failed", emailError);
+      }
+    }
+
     // Optional: Here we could clear cart or reduce product stock
 
     return NextResponse.json({ success: true, data: order }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Failed to create order",
+      },
       { status: 500 },
     );
   }

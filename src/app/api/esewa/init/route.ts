@@ -40,7 +40,13 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!customer || !customer.name || !customer.phone || !customer.address) {
+    if (
+      !customer ||
+      !customer.name ||
+      !customer.phone ||
+      !customer.address ||
+      !customer.city
+    ) {
       return NextResponse.json(
         { success: false, error: "Incomplete customer information" },
         { status: 400 },

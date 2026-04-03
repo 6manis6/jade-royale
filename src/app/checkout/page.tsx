@@ -19,6 +19,9 @@ export default function CheckoutPage() {
     address: "",
     city: "",
   });
+  const [profileEmail, setProfileEmail] = useState("");
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "esewa">("cod");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,6 +31,34 @@ export default function CheckoutPage() {
       router.push("/login?callbackUrl=/checkout");
     }
   }, [router, status]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    fetch("/api/user/profile")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const profile = data.data?.profile || {};
+          const defaultAddress = profile.defaultShippingAddress || {};
+          setFormData({
+            name: profile.name || "",
+            phone: profile.phone || "",
+            address: defaultAddress.address || "",
+            city: defaultAddress.city || "",
+          });
+          setProfileEmail(profile.email || "");
+
+          const missingDefaults =
+            !profile.phone || !defaultAddress.address || !defaultAddress.city;
+          setSaveAsDefault(missingDefaults);
+        }
+        setProfileLoaded(true);
+      })
+      .catch((err) => {
+        console.error(err);
+        setProfileLoaded(true);
+      });
+  }, [status]);
 
   if (status === "loading") {
     return (
@@ -67,6 +98,24 @@ export default function CheckoutPage() {
     setError("");
 
     try {
+      if (saveAsDefault) {
+        const profileRes = await fetch("/api/user/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+          }),
+        });
+        const profileData = await profileRes.json();
+        if (!profileData.success) {
+          setError(profileData.error || "Failed to save default address");
+          setLoading(false);
+          return;
+        }
+      }
+
       if (paymentMethod === "esewa") {
         const response = await fetch("/api/esewa/init", {
           method: "POST",
@@ -154,6 +203,14 @@ export default function CheckoutPage() {
                 Delivery Information
               </h2>
 
+              {profileLoaded &&
+                (!formData.phone || !formData.address || !formData.city) && (
+                  <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                    Set your default shipping address and phone to speed up
+                    checkout next time.
+                  </div>
+                )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2 col-span-1 md:col-span-2">
                   <label className="text-sm font-medium text-(--jade-text)">
@@ -166,6 +223,17 @@ export default function CheckoutPage() {
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-jade-pink focus:border-jade-pink transition-all text-(--jade-text)"
+                  />
+                </div>
+                <div className="space-y-2 col-span-1 md:col-span-2">
+                  <label className="text-sm font-medium text-(--jade-text)">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={profileEmail}
+                    readOnly
+                    className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 text-(--jade-text) opacity-70"
                   />
                 </div>
                 <div className="space-y-2 col-span-1">
@@ -206,6 +274,17 @@ export default function CheckoutPage() {
                     onChange={handleChange}
                     className="w-full bg-(--jade-bg) border border-gray-300 dark:border-gray-700 rounded px-4 py-3 focus:outline-none focus:ring-1 focus:ring-jade-pink focus:border-jade-pink transition-all text-(--jade-text)"
                   />
+                </div>
+                <div className="col-span-1 md:col-span-2">
+                  <label className="inline-flex items-center gap-3 text-sm text-(--jade-text)">
+                    <input
+                      type="checkbox"
+                      checked={saveAsDefault}
+                      onChange={() => setSaveAsDefault((prev) => !prev)}
+                      className="h-4 w-4 rounded border-gray-300 text-jade-pink focus:ring-jade-pink"
+                    />
+                    Save as default shipping address and phone
+                  </label>
                 </div>
               </div>
             </div>
