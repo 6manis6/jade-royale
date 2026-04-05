@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/api/upload") ||
     pathname.startsWith("/api/settings") ||
     (pathname.startsWith("/api/products") && request.method !== "GET") ||
-    (pathname.startsWith("/api/orders") && request.method !== "GET");
+    (pathname.startsWith("/api/orders") && request.method !== "POST");
 
   if (!isAdminPage && !isProtectedAdminApi) {
     return NextResponse.next();
