@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function AdminAccessPage() {
   const [adminEmail, setAdminEmail] = useState("");
@@ -13,7 +13,7 @@ export default function AdminAccessPage() {
   const [adminListLoading, setAdminListLoading] = useState(true);
   const [isSuperuser, setIsSuperuser] = useState(false);
 
-  const loadAdminAccess = async () => {
+  const loadAdminAccess = useCallback(async () => {
     setAdminListLoading(true);
     try {
       const res = await fetch("/api/admin/access", { cache: "no-store" });
@@ -36,11 +36,11 @@ export default function AdminAccessPage() {
       setSuperuserEmail("");
     }
     setAdminListLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     loadAdminAccess();
-  }, []);
+  }, [loadAdminAccess]);
 
   const handleAdminAccess = async (
     action: "grant" | "revoke",
@@ -162,9 +162,7 @@ export default function AdminAccessPage() {
                   <p className="text-sm font-semibold text-[var(--jade-text)]">
                     {superuserEmail}
                   </p>
-                  <p className="text-xs text-[var(--jade-muted)]">
-                    Superuser
-                  </p>
+                  <p className="text-xs text-[var(--jade-muted)]">Superuser</p>
                 </div>
               </div>
             )}
