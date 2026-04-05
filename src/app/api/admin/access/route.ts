@@ -27,7 +27,25 @@ export async function GET() {
   const isSuperuser = isSuperuserEmail(email);
   const isAdmin = isSuperuser || Boolean(user?.isAdmin);
 
-  return NextResponse.json({ success: true, isAdmin, isSuperuser });
+  if (!isSuperuser) {
+    return NextResponse.json({ success: true, isAdmin, isSuperuser });
+  }
+
+  const adminUsers = await User.find({
+    isAdmin: true,
+    email: { $ne: getSuperuserEmail() },
+  })
+    .select("email name")
+    .sort({ email: 1 })
+    .lean();
+
+  return NextResponse.json({
+    success: true,
+    isAdmin,
+    isSuperuser,
+    superuserEmail: getSuperuserEmail(),
+    adminUsers,
+  });
 }
 
 export async function POST(request: Request) {

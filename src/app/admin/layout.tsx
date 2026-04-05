@@ -6,6 +6,7 @@ import {
   ShoppingBag,
   Settings,
   Package,
+  Shield,
   ArrowLeft,
   Menu,
   X,
@@ -23,6 +24,7 @@ export default function AdminLayout({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingAccess, setCheckingAccess] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperuser, setIsSuperuser] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { status } = useSession();
@@ -59,6 +61,7 @@ export default function AdminLayout({
 
         if (res.ok && data?.isAdmin) {
           setIsAdmin(true);
+          setIsSuperuser(Boolean(data?.isSuperuser));
           setCheckingAccess(false);
           return;
         }
@@ -67,6 +70,7 @@ export default function AdminLayout({
       }
 
       setIsAdmin(false);
+      setIsSuperuser(false);
       setCheckingAccess(false);
       router.replace("/");
     };
@@ -140,6 +144,17 @@ export default function AdminLayout({
               Slider Settings
             </span>
           </Link>
+          {isSuperuser && (
+            <Link
+              href="/admin/access"
+              className={`${navLinkBase} ${isActive("/admin/access") ? navLinkActive : navLinkIdle}`}
+            >
+              <Shield size={20} />
+              <span className={`${!isSidebarOpen && "hidden"}`}>
+                Admin Access
+              </span>
+            </Link>
+          )}
         </nav>
 
         <div className="p-4 border-t border-[var(--jade-border)]">
