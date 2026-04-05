@@ -4,6 +4,7 @@ import connectToDatabase from "@/lib/mongodb";
 import Order from "@/lib/models/Order";
 import User from "@/lib/models/User";
 import { sendOrderEmails } from "@/lib/email";
+import { verifyAndDecrementStock } from "@/lib/stock";
 
 const buildSignatureMessage = (
   signedFieldNames: string,
@@ -94,17 +95,29 @@ export async function GET(request: Request) {
     }
 
     await connectToDatabase();
-    const order = await Order.findByIdAndUpdate(
-      transactionUuid,
-      { status: "Paid" },
-      { new: true },
-    );
+    const order = await Order.findById(transactionUuid);
 
     if (!order) {
       return NextResponse.json(
         { success: false, error: "Order not found" },
         { status: 404 },
       );
+    }
+
+    if (order.status !== "Paid") {
+      const stockResult = await verifyAndDecrementStock(order.items || []);
+      if (!stockResult.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: stockResult.error || "Stock unavailable",
+          },
+          { status: 409 },
+        );
+      }
+
+      order.status = "Paid";
+      await order.save();
     }
 
     if (order.userId) {

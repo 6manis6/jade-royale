@@ -90,11 +90,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
         map.set(item.productId, { ...item });
       }
     });
-    return Array.from(map.values()).map((item) => {
-      if (typeof item.stock !== "number") return item;
-      if (item.stock <= 0) return { ...item, qty: 0 };
-      return { ...item, qty: Math.min(item.qty, item.stock) };
-    });
+    return Array.from(map.values())
+      .map((item) => {
+        if (typeof item.stock !== "number") return item;
+        if (item.stock <= 0) return { ...item, qty: 0 };
+        return { ...item, qty: Math.min(item.qty, item.stock) };
+      })
+      .filter((item) => item.qty > 0);
   };
 
   useEffect(() => {

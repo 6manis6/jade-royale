@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import User from "@/lib/models/User";
 import { sendOrderEmails } from "@/lib/email";
+import { verifyAndDecrementStock } from "@/lib/stock";
 
 export async function GET(request: Request) {
   try {
@@ -74,6 +75,21 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { success: false, error: "Incomplete customer information" },
         { status: 400 },
+      );
+    }
+
+    if (body.paymentMethod !== "cod") {
+      return NextResponse.json(
+        { success: false, error: "Unsupported payment method" },
+        { status: 400 },
+      );
+    }
+
+    const stockResult = await verifyAndDecrementStock(body.items);
+    if (!stockResult.success) {
+      return NextResponse.json(
+        { success: false, error: stockResult.error || "Stock unavailable" },
+        { status: 409 },
       );
     }
 
