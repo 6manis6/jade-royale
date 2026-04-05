@@ -32,6 +32,10 @@ export default function AdminSettings() {
   const [uploadingShopBanner, setUploadingShopBanner] = useState<number | null>(
     null,
   );
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminActionLoading, setAdminActionLoading] = useState(false);
+  const [adminActionMessage, setAdminActionMessage] = useState("");
+  const [canManageAdmins, setCanManageAdmins] = useState(false);
   const [promoBanner, setPromoBanner] = useState({
     subtitle: "A nature's touch",
     titleHighlight: "Get 20%",
@@ -45,6 +49,15 @@ export default function AdminSettings() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    fetch("/api/admin/access")
+      .then((res) => res.json())
+      .then((data) => {
+        setCanManageAdmins(Boolean(data?.isSuperuser));
+      })
+      .catch(() => {
+        setCanManageAdmins(false);
+      });
+
     fetch("/api/settings?key=hero_slider")
       .then((res) => res.json())
       .then((data) => {
@@ -83,6 +96,39 @@ export default function AdminSettings() {
         }
       });
   }, []);
+
+  const handleAdminAccess = async (action: "grant" | "revoke") => {
+    if (!adminEmail.trim()) {
+      setAdminActionMessage("Please enter an email address.");
+      return;
+    }
+
+    setAdminActionLoading(true);
+    setAdminActionMessage("");
+    try {
+      const res = await fetch("/api/admin/access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: adminEmail.trim(), action }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setAdminActionMessage(data?.error || "Unable to update access.");
+      } else {
+        setAdminActionMessage(
+          action === "grant"
+            ? "Admin access granted."
+            : "Admin access revoked.",
+        );
+        setAdminEmail("");
+      }
+    } catch (err) {
+      console.error(err);
+      setAdminActionMessage("Unable to update access.");
+    }
+    setAdminActionLoading(false);
+  };
 
   const handleSave = async () => {
     setLoading(true);
@@ -159,6 +205,51 @@ export default function AdminSettings() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
+      {canManageAdmins && (
+        <div className="bg-[var(--jade-card)] p-8 rounded-2xl border border-[var(--jade-border)] shadow-sm space-y-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-[var(--jade-muted)] font-semibold">
+              Admin Access
+            </p>
+            <h2 className="text-2xl font-serif text-[var(--jade-text)] mt-2">
+              Manage Admin Permissions
+            </h2>
+            <p className="text-sm text-[var(--jade-muted)] mt-2">
+              Grant or revoke admin panel access by email.
+            </p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-3">
+            <input
+              type="email"
+              value={adminEmail}
+              onChange={(e) => setAdminEmail(e.target.value)}
+              placeholder="user@example.com"
+              className="flex-1 px-4 py-2 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl outline-none focus:ring-1 focus:ring-[var(--color-jade-pink)] text-[var(--jade-text)]"
+            />
+            <button
+              onClick={() => handleAdminAccess("grant")}
+              disabled={adminActionLoading}
+              className="px-4 py-2 rounded-xl bg-[var(--color-jade-pink)] text-white font-semibold disabled:bg-[var(--jade-border)]"
+            >
+              Grant Access
+            </button>
+            <button
+              onClick={() => handleAdminAccess("revoke")}
+              disabled={adminActionLoading}
+              className="px-4 py-2 rounded-xl border border-[var(--jade-border)] text-[var(--jade-text)] font-semibold disabled:text-[var(--jade-muted)]"
+            >
+              Revoke Access
+            </button>
+          </div>
+
+          {adminActionMessage && (
+            <p className="text-sm text-[var(--jade-muted)]">
+              {adminActionMessage}
+            </p>
+          )}
+        </div>
+      )}
       <div>
         <p className="text-xs uppercase tracking-[0.25em] text-[var(--jade-muted)] font-semibold">
           Homepage

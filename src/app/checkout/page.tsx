@@ -368,25 +368,6 @@ export default function CheckoutPage() {
                   )}
                 </label>
               </div>
-
-              {paymentMethod === "esewa" && (
-                <div className="mt-6 p-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-900/30 rounded-lg text-center">
-                  <p className="text-green-800 dark:text-green-300 font-medium mb-3 tracking-wide">
-                    Please open eSewa and scan or send NPR{" "}
-                    {Math.round(cartTotal * 132)} to:
-                  </p>
-                  <p className="font-serif text-3xl font-bold text-green-900 dark:text-green-400 mb-2">
-                    +977-9800000000
-                  </p>
-                  <p className="text-sm text-green-700 dark:text-green-500 italic">
-                    Name: Jade Royale Store
-                  </p>
-                  <div className="mt-4 text-xs text-green-600 dark:text-green-400/60">
-                    Once placed, please take a screenshot of your eSewa
-                    transaction and keep it safely. Our team will verify it.
-                  </div>
-                </div>
-              )}
             </div>
 
             <button

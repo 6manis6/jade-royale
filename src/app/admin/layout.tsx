@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 export default function AdminLayout({
   children,
@@ -20,10 +21,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [checkingSession, setCheckingSession] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { status } = useSession();
 
   const navLinkBase =
     "flex items-center gap-3 p-3 rounded-xl transition-colors font-medium";
@@ -35,46 +37,44 @@ export default function AdminLayout({
     pathname === path || pathname.startsWith(`${path}/`);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/admin/logout", { method: "POST" });
-    } catch (err) {
-      console.error(err);
-    }
-    router.push("/admin/login");
-    router.refresh();
+    await signOut({ callbackUrl: "/" });
   };
 
   useEffect(() => {
-    const verifySession = async () => {
-      if (pathname === "/admin/login") {
-        setIsAuthenticated(true);
-        setCheckingSession(false);
+    const verifyAccess = async () => {
+      if (status === "loading") {
         return;
       }
 
-      setCheckingSession(true);
+      if (status === "unauthenticated") {
+        setCheckingAccess(false);
+        router.replace(`/login?callbackUrl=${encodeURIComponent("/admin")}`);
+        return;
+      }
+
+      setCheckingAccess(true);
       try {
-        const res = await fetch("/api/admin/session", { cache: "no-store" });
+        const res = await fetch("/api/admin/access", { cache: "no-store" });
         const data = await res.json();
 
-        if (res.ok && data?.authenticated) {
-          setIsAuthenticated(true);
-          setCheckingSession(false);
+        if (res.ok && data?.isAdmin) {
+          setIsAdmin(true);
+          setCheckingAccess(false);
           return;
         }
       } catch (err) {
         console.error(err);
       }
 
-      setIsAuthenticated(false);
-      setCheckingSession(false);
-      router.replace(`/admin/login?next=${encodeURIComponent(pathname)}`);
+      setIsAdmin(false);
+      setCheckingAccess(false);
+      router.replace("/");
     };
 
-    verifySession();
-  }, [pathname, router]);
+    verifyAccess();
+  }, [router, status]);
 
-  if (checkingSession) {
+  if (checkingAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--jade-bg)] text-[var(--jade-text)]">
         <p className="text-sm uppercase tracking-[0.25em] text-[var(--jade-muted)]">
@@ -84,7 +84,7 @@ export default function AdminLayout({
     );
   }
 
-  if (!isAuthenticated && pathname !== "/admin/login") {
+  if (!isAdmin) {
     return null;
   }
 

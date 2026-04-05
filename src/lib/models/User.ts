@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema(
       enum: ["credentials", "google"],
       default: "credentials",
     },
+    isAdmin: { type: Boolean, default: false },
     emailVerified: { type: Boolean, default: false },
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
     cart: { type: [CartItemSchema], default: [] },

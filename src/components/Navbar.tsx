@@ -13,6 +13,7 @@ export default function Navbar() {
   const { data: session, status } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +22,22 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (status !== "authenticated") {
+      setIsAdmin(false);
+      return;
+    }
+
+    fetch("/api/admin/access")
+      .then((res) => res.json())
+      .then((data) => {
+        setIsAdmin(Boolean(data?.isAdmin));
+      })
+      .catch(() => {
+        setIsAdmin(false);
+      });
+  }, [status]);
 
   return (
     <header
@@ -76,6 +93,14 @@ export default function Navbar() {
             >
               Clothing
             </Link>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold text-sm tracking-widest uppercase transition-colors"
+              >
+                Admin
+              </Link>
+            )}
           </nav>
 
           {/* Icons */}
@@ -231,6 +256,15 @@ export default function Navbar() {
                 Sign Up
               </Link>
             </>
+          )}
+          {isAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] font-bold uppercase text-sm"
+            >
+              Admin Panel
+            </Link>
           )}
         </div>
       )}
