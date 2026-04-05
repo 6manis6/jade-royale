@@ -24,7 +24,6 @@ export default function ProductForm() {
     variants: [] as Array<{
       colorName: string;
       shadeName: string;
-      shadeImage: string;
       colorHex: string;
       price: number;
       stock: number;
@@ -46,7 +45,6 @@ export default function ProductForm() {
             const variants = (data.data.variants || []).map((v: any) => ({
               colorName: v.colorName || "",
               shadeName: v.shadeName || "",
-              shadeImage: v.shadeImage || "",
               colorHex: v.colorHex || "#ff0000",
               price: v.price || data.data.price || 0,
               stock: typeof v.stock === "number" ? v.stock : 0,
@@ -84,7 +82,6 @@ export default function ProductForm() {
         ...v,
         colorName: v.colorName.trim(),
         shadeName: v.shadeName.trim(),
-        shadeImage: v.shadeImage.trim(),
         images: v.images.filter((img) => img.trim().length > 0),
       })),
     };
@@ -226,7 +223,6 @@ export default function ProductForm() {
         {
           colorName: "",
           shadeName: "",
-          shadeImage: "",
           colorHex: "#ff0000",
           price: product.price,
           stock: 0,
@@ -234,44 +230,6 @@ export default function ProductForm() {
         },
       ],
     });
-  };
-
-  const handleShadeImageUpload = async (
-    files: FileList | null,
-    variantIdx: number,
-  ) => {
-    if (!files || files.length === 0) return;
-    setUploading(true);
-    setUploadError("");
-
-    try {
-      const file = files[0];
-      if (!file.type.startsWith("image/")) {
-        setUploadError(`${file.name}: not an image`);
-        setUploading(false);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-
-      if (res.ok && data?.url) {
-        updateVariant(variantIdx, "shadeImage", data.url);
-      } else {
-        setUploadError(data?.error || "Shade image upload failed.");
-      }
-    } catch (err) {
-      console.error(err);
-      setUploadError("Unexpected shade image upload error.");
-    }
-
-    setUploading(false);
   };
 
   const updateVariant = (variantIdx: number, field: string, value: any) => {
@@ -581,93 +539,31 @@ export default function ProductForm() {
                         required
                       />
                     </div>
-                    {product.variantType === "color" ? (
-                      <div>
-                        <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
-                          Color Hex
-                        </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="color"
-                            className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
-                            value={variant.colorHex}
-                            onChange={(e) =>
-                              updateVariant(vIdx, "colorHex", e.target.value)
-                            }
-                          />
-                          <input
-                            type="text"
-                            className="flex-grow px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)] uppercase"
-                            value={variant.colorHex}
-                            onChange={(e) =>
-                              updateVariant(vIdx, "colorHex", e.target.value)
-                            }
-                          />
-                        </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
+                        {product.variantType === "shade"
+                          ? "Shade Color"
+                          : "Color Hex"}
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
+                          value={variant.colorHex}
+                          onChange={(e) =>
+                            updateVariant(vIdx, "colorHex", e.target.value)
+                          }
+                        />
+                        <input
+                          type="text"
+                          className="flex-grow px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)] uppercase"
+                          value={variant.colorHex}
+                          onChange={(e) =>
+                            updateVariant(vIdx, "colorHex", e.target.value)
+                          }
+                        />
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
-                            Shade Preview Image
-                          </label>
-                          <div className="space-y-2">
-                            <label className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--color-jade-pink)] cursor-pointer">
-                              <Upload size={14} /> Upload
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) =>
-                                  handleShadeImageUpload(e.target.files, vIdx)
-                                }
-                              />
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="https://..."
-                              className="w-full px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)]"
-                              value={variant.shadeImage}
-                              onChange={(e) =>
-                                updateVariant(
-                                  vIdx,
-                                  "shadeImage",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                            <p className="text-xs text-[var(--jade-muted)]">
-                              This image is only for the shade selector
-                              thumbnail.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
-                            Shade Color
-                          </label>
-                          <div className="flex gap-2">
-                            <input
-                              type="color"
-                              className="w-10 h-10 p-0 border-0 rounded cursor-pointer"
-                              value={variant.colorHex}
-                              onChange={(e) =>
-                                updateVariant(vIdx, "colorHex", e.target.value)
-                              }
-                            />
-                            <input
-                              type="text"
-                              className="flex-grow px-3 py-2 bg-[var(--jade-card)] border border-[var(--jade-border)] rounded-lg outline-none text-[var(--jade-text)] uppercase"
-                              value={variant.colorHex}
-                              onChange={(e) =>
-                                updateVariant(vIdx, "colorHex", e.target.value)
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    </div>
                     <div>
                       <label className="block text-xs font-semibold text-[var(--jade-muted)] mb-1">
                         Price (Rs)

@@ -29,7 +29,6 @@ export default function ProductDetail() {
     price: number;
     shadeName?: string;
     colorName?: string;
-    shadeImage?: string;
     colorHex?: string;
     stock?: number;
   };
@@ -532,7 +531,7 @@ export default function ProductDetail() {
                 <div className="flex flex-wrap gap-5">
                   {variants.map((variant, idx: number) => {
                     const shadeLabel = variant.shadeName || variant.colorName;
-                    const shadeImage = variant.shadeImage || "";
+                    const shadeColor = variant.colorHex || "#d1d5db";
 
                     return (
                       <button
@@ -546,19 +545,10 @@ export default function ProductDetail() {
                         type="button"
                       >
                         <div
-                          className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-(--jade-bg) ${selectedVariantIdx === idx ? "border-jade-pink shadow-md scale-110" : "border-(--jade-border) group-hover:border-jade-pink"}`}
+                          className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden border-2 transition-all flex items-center justify-center bg-(--jade-bg) ${selectedVariantIdx === idx ? "border-jade-pink shadow-md scale-110" : "border-(--jade-border) group-hover:border-jade-pink"}`}
+                          style={{ backgroundColor: shadeColor }}
                         >
-                          {shadeImage ? (
-                            <img
-                              src={shadeImage}
-                              alt={shadeLabel}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-[10px] text-(--jade-muted)">
-                              No img
-                            </span>
-                          )}
+                          <span className="absolute inset-0 bg-linear-to-tr from-black/10 to-transparent"></span>
                         </div>
                         <p
                           className={`text-xs font-medium text-center line-clamp-2 mt-1 ${selectedVariantIdx === idx ? "text-jade-pink" : "text-(--jade-text) group-hover:text-jade-pink"}`}
