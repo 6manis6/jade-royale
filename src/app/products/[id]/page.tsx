@@ -19,7 +19,7 @@ import { formatPrice } from "@/lib/currency";
 
 export default function ProductDetail() {
   const params = useParams();
-  const id = params.id as string;
+  const slug = params.id as string;
   const { addToCart } = useCart();
   const router = useRouter();
 
@@ -35,6 +35,7 @@ export default function ProductDetail() {
   };
   type Product = {
     _id: string;
+    slug?: string;
     name: string;
     category?: string;
     images?: string[];
@@ -87,7 +88,8 @@ export default function ProductDetail() {
   const zoomPreviewSize = 520;
 
   useEffect(() => {
-    fetch(`/api/products/${id}`)
+    setLoading(true);
+    fetch(`/api/products/${slug}`)
       .then((res) => res.json() as Promise<ProductResponse>)
       .then((data) => {
         if (data.success && data.data) {
@@ -102,29 +104,40 @@ export default function ProductDetail() {
         console.error("Failed to fetch product", err);
         setLoading(false);
       });
+  }, [slug]);
 
-    if (session) {
-      fetch("/api/user/profile")
-        .then((res) => res.json() as Promise<ProfileResponse>)
-        .then((data) => {
-          if (data.success && data.data?.wishlist) {
-            const wishlistIds = new Set<string>(
-              data.data.wishlist.map((item) =>
-                typeof item === "string" ? item : String(item._id),
-              ),
-            );
-            const inWishlist = wishlistIds.has(id);
-            setIsWishlisted(inWishlist);
-            setSuggestedWishlistIds(wishlistIds);
-          }
-        });
-    } else {
+  useEffect(() => {
+    if (!session) {
       queueMicrotask(() => {
         setIsWishlisted(false);
         setSuggestedWishlistIds(new Set());
       });
+      return;
     }
-  }, [id, session]);
+
+    fetch("/api/user/profile")
+      .then((res) => res.json() as Promise<ProfileResponse>)
+      .then((data) => {
+        if (data.success && data.data?.wishlist) {
+          const wishlistIds = new Set<string>(
+            data.data.wishlist.map((item) =>
+              typeof item === "string" ? item : String(item._id),
+            ),
+          );
+          setSuggestedWishlistIds(wishlistIds);
+        }
+      });
+  }, [session]);
+
+  useEffect(() => {
+    if (!product) {
+      setIsWishlisted(false);
+      return;
+    }
+    setIsWishlisted(suggestedWishlistIds.has(product._id));
+  }, [product, suggestedWishlistIds]);
+
+  const currentProductId = product?._id;
 
   useEffect(() => {
     fetch("/api/products?limit=30")
@@ -132,12 +145,14 @@ export default function ProductDetail() {
       .then((data) => {
         if (!data.success || !Array.isArray(data.data)) return;
 
-        const filtered = data.data.filter((p) => p._id !== id);
+        const filtered = currentProductId
+          ? data.data.filter((p) => p._id !== currentProductId)
+          : data.data;
         const shuffled = [...filtered].sort(() => Math.random() - 0.5);
         setSuggestedProducts(shuffled.slice(0, 4));
       })
       .catch((err) => console.error("Failed to fetch suggested products", err));
-  }, [id]);
+  }, [currentProductId]);
 
   const variants = product?.variants || [];
   const variantMode: "color" | "shade" =
@@ -202,6 +217,7 @@ export default function ProductDetail() {
 
     addToCart({
       productId: finalProductId,
+      slug: product.slug,
       name: finalName,
       price: displayPrice,
       qty: qty,
@@ -673,7 +689,7 @@ export default function ProductDetail() {
               return (
                 <Link
                   key={item._id}
-                  href={`/products/${item._id}`}
+                  href={`/products/${item.slug || item._id}`}
                   className="group relative border border-(--jade-border) rounded-xl p-3 bg-(--jade-card) hover:shadow-md transition-shadow"
                 >
                   {itemDiscount > 0 && (

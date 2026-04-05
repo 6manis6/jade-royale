@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/currency";
 
 interface Product {
   _id: string;
+  slug?: string;
   name: string;
   price: number;
   originalPrice?: number;
@@ -45,6 +46,7 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault(); // Prevent navigating to product detail
     addToCart({
       productId: product._id,
+      slug: product.slug,
       name: product.name,
       price: product.price,
       qty: 1,
@@ -57,6 +59,7 @@ export default function ProductCard({ product }: { product: Product }) {
     e.preventDefault();
     addToCart({
       productId: product._id,
+      slug: product.slug,
       name: product.name,
       price: product.price,
       qty: 1,
@@ -76,7 +79,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <Link
-      href={`/products/${product._id}`}
+      href={`/products/${product.slug || product._id}`}
       className="group relative block bg-(--jade-card) hover:shadow-xl transition-all duration-300 border border-transparent dark:border-gray-800"
     >
       {/* Product Image Area */}

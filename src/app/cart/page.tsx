@@ -58,7 +58,7 @@ export default function CartPage() {
                           />
                         </div>
                         <Link
-                          href={`/products/${item.productId}`}
+                          href={`/products/${item.slug || item.productId}`}
                           className="font-medium text-[var(--jade-text)] hover:text-[var(--color-jade-pink)] transition-colors"
                         >
                           {item.name}

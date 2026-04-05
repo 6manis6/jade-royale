@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 
 type CartItem = {
   productId: string;
+  slug?: string;
   name: string;
   price: number;
   qty: number;
@@ -66,7 +67,7 @@ export async function GET() {
       .filter((id) => mongoose.Types.ObjectId.isValid(id));
     const products = await Product.find(
       { _id: { $in: baseIds } },
-      "stock variants variantType",
+      "stock variants variantType slug",
     );
     const productMap = new Map(
       products.map((product) => [product._id.toString(), product]),
@@ -83,6 +84,7 @@ export async function GET() {
         typeof variantStock === "number" ? variantStock : product?.stock;
       return {
         productId: String(item.productId),
+        slug: product?.slug ? String(product.slug) : undefined,
         name: String(item.name),
         price: Number(item.price),
         qty: Number(item.qty),
@@ -142,7 +144,7 @@ export async function PUT(request: Request) {
       .filter((id) => mongoose.Types.ObjectId.isValid(id));
     const products = await Product.find(
       { _id: { $in: baseIds } },
-      "stock variants variantType",
+      "stock variants variantType slug",
     );
     const productMap = new Map(
       products.map((product) => [product._id.toString(), product]),
@@ -160,7 +162,12 @@ export async function PUT(request: Request) {
           typeof variantStock === "number" ? variantStock : product?.stock;
         if (typeof stock !== "number") return item;
         const cappedQty = Math.min(item.qty, Math.max(0, stock));
-        return { ...item, qty: cappedQty, stock };
+        return {
+          ...item,
+          qty: cappedQty,
+          stock,
+          slug: product?.slug ? String(product.slug) : undefined,
+        };
       })
       .filter((item) => item.qty > 0);
 

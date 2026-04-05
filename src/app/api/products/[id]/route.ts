@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import connectToDatabase from "@/lib/mongodb";
 import Product from "@/lib/models/Product";
 import mongoose from "mongoose";
+import { slugify } from "@/lib/slug";
+
+const buildUniqueSlug = async (value: string, excludeId?: string) => {
+  const base = slugify(value);
+  let slug = base;
+  let counter = 1;
+
+  while (true) {
+    const query: Record<string, unknown> = { slug };
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+    const existing = await Product.findOne(query).select("_id");
+    if (!existing) return slug;
+
+    counter += 1;
+    slug = `${base}-${counter}`;
+  }
+};
 
 export async function GET(request: Request, context: any) {
   try {
@@ -10,20 +29,24 @@ export async function GET(request: Request, context: any) {
 
     await connectToDatabase();
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json(
-        { success: false, error: "Invalid Product ID" },
-        { status: 400 },
-      );
-    }
-
-    const product = await Product.findById(id);
+    const isObjectId = mongoose.Types.ObjectId.isValid(id);
+    const product = isObjectId
+      ? await Product.findById(id)
+      : await Product.findOne({ slug: id });
 
     if (!product) {
       return NextResponse.json(
         { success: false, error: "Product not found" },
         { status: 404 },
       );
+    }
+
+    if (!product.slug && product.name) {
+      product.slug = await buildUniqueSlug(
+        String(product.name || "product"),
+        product._id.toString(),
+      );
+      await product.save();
     }
 
     return NextResponse.json({ success: true, data: product });
@@ -50,6 +73,11 @@ export async function PUT(request: Request, context: any) {
     }
 
     const body = await request.json();
+    if (body?.name && !body?.slug) {
+      body.slug = await buildUniqueSlug(body.name, id);
+    } else if (body?.slug) {
+      body.slug = await buildUniqueSlug(body.slug, id);
+    }
     const product = await Product.findByIdAndUpdate(id, body, {
       new: true,
       runValidators: true,

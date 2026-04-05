@@ -7,6 +7,7 @@ import ShopBanners from "@/components/ShopBanners";
 
 interface Product {
   _id: string;
+  slug?: string;
   name: string;
   price: number;
   originalPrice?: number;
