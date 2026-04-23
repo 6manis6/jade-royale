@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 
 export default function AdminLayout({
   children,
@@ -27,7 +27,6 @@ export default function AdminLayout({
   const [isSuperuser, setIsSuperuser] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { status } = useSession();
 
   const navLinkBase =
     "flex items-center gap-3 p-3 rounded-xl transition-colors font-medium";
@@ -44,20 +43,10 @@ export default function AdminLayout({
 
   useEffect(() => {
     const verifyAccess = async () => {
-      if (status === "loading") {
-        return;
-      }
-
-      if (status === "unauthenticated") {
-        setCheckingAccess(false);
-        router.replace(`/login?callbackUrl=${encodeURIComponent("/admin")}`);
-        return;
-      }
-
       setCheckingAccess(true);
       try {
         const res = await fetch("/api/admin/access", { cache: "no-store" });
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
 
         if (res.ok && data?.isAdmin) {
           setIsAdmin(true);
@@ -65,18 +54,24 @@ export default function AdminLayout({
           setCheckingAccess(false);
           return;
         }
+
+        if (res.status === 401) {
+          router.replace(`/login?callbackUrl=${encodeURIComponent("/admin")}`);
+        } else {
+          router.replace("/");
+        }
       } catch (err) {
         console.error(err);
+        router.replace("/");
       }
 
       setIsAdmin(false);
       setIsSuperuser(false);
       setCheckingAccess(false);
-      router.replace("/");
     };
 
     verifyAccess();
-  }, [router, status]);
+  }, [router]);
 
   if (checkingAccess) {
     return (
