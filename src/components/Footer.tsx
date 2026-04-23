@@ -2,9 +2,9 @@ import Link from "next/link";
 import {
   Facebook,
   Instagram,
-  Twitter,
+  Youtube,
+  Music2,
   MapPin,
-  Phone,
   Mail,
 } from "lucide-react";
 import Image from "next/image";
@@ -37,7 +37,9 @@ export default function Footer() {
             </p>
             <div className="flex space-x-4 pt-2">
               <a
-                href="#"
+                href="https://www.facebook.com/jade.royale15"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] transition-colors"
               >
                 <Facebook size={20} />
@@ -51,10 +53,22 @@ export default function Footer() {
                 <Instagram size={20} />
               </a>
               <a
-                href="#"
+                href="https://www.tiktok.com/@jade.royale15"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] transition-colors"
+                aria-label="TikTok"
+              >
+                <Music2 size={20} />
+              </a>
+              <a
+                href="https://www.youtube.com/@AllureWithDimple"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
                 className="text-[var(--jade-muted)] hover:text-[var(--color-jade-pink)] transition-colors"
               >
-                <Twitter size={20} />
+                <Youtube size={20} />
               </a>
             </div>
           </div>
