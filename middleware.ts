@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-const COOKIE_NAME = "admin_auth";
-
-function isAuthorized(request: NextRequest): boolean {
-  const token = request.cookies.get(COOKIE_NAME)?.value;
-  const envToken = process.env.ADMIN_PANEL_TOKEN;
-
-  if (!envToken) {
-    return false;
-  }
-
-  return token === envToken;
-}
-
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const isAdminLoginPage = pathname === "/admin/login";
@@ -29,7 +17,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const authorized = isAuthorized(request);
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+  const authorized = Boolean(token);
 
   if (isAdminLoginPage && authorized) {
     return NextResponse.redirect(new URL("/admin", request.url));
@@ -44,8 +36,8 @@ export function middleware(request: NextRequest) {
         );
       }
 
-      const loginUrl = new URL("/admin/login", request.url);
-      loginUrl.searchParams.set("next", `${pathname}${search}`);
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", `${pathname}${search}`);
       return NextResponse.redirect(loginUrl);
     }
   }
