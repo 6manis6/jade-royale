@@ -30,6 +30,7 @@ const categories = [
   "Haircare",
   "Fragrance",
   "Clothing",
+  "Jwellery",
 ];
 
 function ShopContent() {

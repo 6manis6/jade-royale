@@ -112,6 +112,7 @@ export default function AdminProducts() {
           <option value="Haircare">Haircare</option>
           <option value="Fragrance">Fragrance</option>
           <option value="Clothing">Clothing</option>
+          <option value="Jwellery">Jwellery</option>
         </select>
       </div>
 

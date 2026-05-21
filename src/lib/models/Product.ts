@@ -9,7 +9,18 @@ const ProductSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ["Skincare", "Makeup", "Haircare", "Fragrance", "Clothing"],
+      enum: [
+        "Skincare",
+        "Makeup",
+        "Haircare",
+        "Fragrance",
+        "Clothing",
+        "Jwellery",
+      ],
+    },
+    subcategory: {
+      type: String,
+      enum: ["Earrings", "Pendents", "Bracelets", "Rings"],
     },
     images: [{ type: String, required: true }],
     description: { type: String, required: true },

@@ -23,6 +23,7 @@ const shopBannerCategories = [
   "Haircare",
   "Fragrance",
   "Clothing",
+  "Jwellery",
 ];
 
 export default function AdminSettings() {

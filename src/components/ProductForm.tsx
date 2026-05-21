@@ -10,12 +10,14 @@ export default function ProductForm() {
   const params = useParams();
   const id = params.id as string;
   const isEdit = !!id;
+  const jewelrySubcategories = ["Earrings", "Pendents", "Bracelets", "Rings"];
 
   const [product, setProduct] = useState({
     name: "",
     price: 0,
     originalPrice: 0,
     category: "Skincare",
+    subcategory: "",
     description: "",
     stock: 0,
     badge: "",
@@ -320,17 +322,46 @@ export default function ProductForm() {
             <select
               className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
               value={product.category}
-              onChange={(e) =>
-                setProduct({ ...product, category: e.target.value })
-              }
+              onChange={(e) => {
+                const nextCategory = e.target.value;
+                setProduct({
+                  ...product,
+                  category: nextCategory,
+                  subcategory:
+                    nextCategory === "Jwellery" ? product.subcategory : "",
+                });
+              }}
             >
               <option>Skincare</option>
               <option>Makeup</option>
               <option>Haircare</option>
               <option>Fragrance</option>
               <option>Clothing</option>
+              <option>Jwellery</option>
             </select>
           </div>
+
+          {product.category === "Jwellery" && (
+            <div className="space-y-4">
+              <label className="block text-sm font-semibold text-[var(--jade-muted-strong)]">
+                Subcategory
+              </label>
+              <select
+                className="w-full px-4 py-3 bg-[var(--jade-input)] border border-[var(--jade-border)] rounded-xl focus:ring-1 focus:ring-[var(--color-jade-pink)] outline-none text-[var(--jade-text)]"
+                value={product.subcategory}
+                onChange={(e) =>
+                  setProduct({ ...product, subcategory: e.target.value })
+                }
+              >
+                <option value="">Select subcategory</option>
+                {jewelrySubcategories.map((subcategory) => (
+                  <option key={subcategory} value={subcategory}>
+                    {subcategory}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-4">
             {product.variants.length === 0 ? (
